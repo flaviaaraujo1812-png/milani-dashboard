@@ -18,6 +18,7 @@ const [custo,setCusto] = useState("")
 const [estoque,setEstoque] = useState("")
 const [cores,setCores] = useState("")
 const [foto,setFoto] = useState<any>(null)
+const [preview,setPreview] = useState("")
 
 const [produtoEditando,setProdutoEditando] = useState<any>(null)
 
@@ -33,6 +34,22 @@ const {data} = await supabase
 .order("nome",{ascending:true})
 
 setProdutos(data || [])
+
+}
+
+function selecionarFoto(e:any){
+
+const file = e.target.files[0]
+
+if(file){
+
+setFoto(file)
+
+const url = URL.createObjectURL(file)
+
+setPreview(url)
+
+}
 
 }
 
@@ -93,6 +110,7 @@ setCusto("")
 setEstoque("")
 setCores("")
 setFoto(null)
+setPreview("")
 setProdutoEditando(null)
 
 carregarProdutos()
@@ -170,8 +188,20 @@ onChange={(e)=>setCores(e.target.value)}
 
 <input
 type="file"
-onChange={(e)=>setFoto(e.target.files?.[0])}
+onChange={selecionarFoto}
 />
+
+<br/><br/>
+
+{preview && (
+
+<img
+src={preview}
+width="120"
+style={{borderRadius:8}}
+/>
+
+)}
 
 <br/><br/>
 
@@ -207,11 +237,10 @@ return(
 border:"1px solid #ddd",
 padding:15,
 width:220,
-borderRadius:8,
-background:"#fff"
+borderRadius:8
 }}>
 
-<img src={p.foto} width="100%" style={{borderRadius:6}} />
+<img src={p.foto} width="100%" />
 
 <h3>{p.nome}</h3>
 
@@ -229,15 +258,7 @@ background:"#fff"
 
 <button
 onClick={()=>editarProduto(p)}
-style={{
-background:"#f59e0b",
-color:"white",
-border:"none",
-padding:"6px 12px",
-marginRight:5,
-borderRadius:6,
-cursor:"pointer"
-}}
+style={{marginRight:5}}
 >
 
 Editar
@@ -246,14 +267,6 @@ Editar
 
 <button
 onClick={()=>excluirProduto(p.id)}
-style={{
-background:"#ec4899",
-color:"white",
-border:"none",
-padding:"6px 12px",
-borderRadius:6,
-cursor:"pointer"
-}}
 >
 
 Excluir
