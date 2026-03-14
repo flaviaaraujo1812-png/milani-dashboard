@@ -16,8 +16,8 @@ const [nome,setNome] = useState("")
 const [preco,setPreco] = useState("")
 const [custo,setCusto] = useState("")
 const [estoque,setEstoque] = useState("")
-const [foto,setFoto] = useState("")
 const [cores,setCores] = useState("")
+const [foto,setFoto] = useState<any>(null)
 
 const [produtoEditando,setProdutoEditando] = useState<any>(null)
 
@@ -36,34 +36,54 @@ setProdutos(data || [])
 
 }
 
+async function uploadImagem(){
+
+if(!foto) return ""
+
+const nomeArquivo = Date.now()+"_"+foto.name
+
+await supabase.storage
+.from("produtos")
+.upload(nomeArquivo,foto)
+
+const {data} = supabase
+.storage
+.from("produtos")
+.getPublicUrl(nomeArquivo)
+
+return data.publicUrl
+
+}
+
 async function salvarProduto(){
+
+let urlFoto = ""
+
+if(foto){
+urlFoto = await uploadImagem()
+}
+
+const dados = {
+nome,
+preco:Number(preco),
+custo:Number(custo),
+estoque:Number(estoque),
+cores,
+foto:urlFoto
+}
 
 if(produtoEditando){
 
 await supabase
 .from("produtos")
-.update({
-nome,
-preco,
-custo,
-estoque,
-foto,
-cores
-})
+.update(dados)
 .eq("id",produtoEditando.id)
 
 }else{
 
 await supabase
 .from("produtos")
-.insert({
-nome,
-preco,
-custo,
-estoque,
-foto,
-cores
-})
+.insert(dados)
 
 }
 
@@ -71,8 +91,8 @@ setNome("")
 setPreco("")
 setCusto("")
 setEstoque("")
-setFoto("")
 setCores("")
+setFoto(null)
 setProdutoEditando(null)
 
 carregarProdutos()
@@ -87,7 +107,6 @@ setNome(p.nome)
 setPreco(p.preco)
 setCusto(p.custo)
 setEstoque(p.estoque)
-setFoto(p.foto)
 setCores(p.cores)
 
 }
@@ -142,17 +161,16 @@ onChange={(e)=>setEstoque(e.target.value)}
 <br/><br/>
 
 <input
-placeholder="URL da foto"
-value={foto}
-onChange={(e)=>setFoto(e.target.value)}
+placeholder="Cores (ex: Preto,Marrom,Bege)"
+value={cores}
+onChange={(e)=>setCores(e.target.value)}
 />
 
 <br/><br/>
 
 <input
-placeholder="Cores (ex: Preto,Marrom,Bege)"
-value={cores}
-onChange={(e)=>setCores(e.target.value)}
+type="file"
+onChange={(e)=>setFoto(e.target.files?.[0])}
 />
 
 <br/><br/>
