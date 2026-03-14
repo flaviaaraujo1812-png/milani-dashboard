@@ -17,6 +17,7 @@ const [preco,setPreco] = useState("")
 const [custo,setCusto] = useState("")
 const [estoque,setEstoque] = useState("")
 const [cores,setCores] = useState("")
+
 const [foto,setFoto] = useState<any>(null)
 const [preview,setPreview] = useState("")
 
@@ -74,7 +75,7 @@ return data.publicUrl
 
 async function salvarProduto(){
 
-let urlFoto = ""
+let urlFoto = produtoEditando?.foto || ""
 
 if(foto){
 urlFoto = await uploadImagem()
@@ -126,6 +127,7 @@ setPreco(p.preco)
 setCusto(p.custo)
 setEstoque(p.estoque)
 setCores(p.cores)
+setPreview(p.foto)
 
 }
 
