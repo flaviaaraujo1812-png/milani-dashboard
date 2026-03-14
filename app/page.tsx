@@ -144,23 +144,6 @@ alert("Venda finalizada")
 
 return(
 
-<div style={{display:"flex",fontFamily:"Arial"}}>
-
-<div style={{
-width:200,
-background:"#111827",
-color:"white",
-padding:20,
-height:"100vh"
-}}>
-
-<h3>Milani</h3>
-
-<p>Produtos</p>
-<p>Caixa</p>
-
-</div>
-
 <div style={{padding:20,width:"100%"}}>
 
 <h2>Painel Milani Bolsas e Acessórios</h2>
@@ -348,7 +331,6 @@ Finalizar venda
 
 </div>
 
-</div>
 
 )
 
