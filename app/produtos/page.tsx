@@ -13,7 +13,7 @@ const [custo,setCusto] = useState("")
 const [estoque,setEstoque] = useState("")
 const [foto,setFoto] = useState("")
 const [editandoId,setEditandoId] = useState<any>(null)
-
+const [cores,setCores] = useState("")
 useEffect(()=>{
 carregarProdutos()
 },[])
@@ -191,6 +191,15 @@ onChange={(e)=>setFoto(e.target.value)}
 />
 
 <br/><br/>
+
+<input
+type="text"
+placeholder="Cores (ex: Preto,Marrom,Bege)"
+value={cores}
+onChange={(e)=>setCores(e.target.value)}
+/>
+
+<br></br>
 
 <button
 onClick={salvarProduto}
