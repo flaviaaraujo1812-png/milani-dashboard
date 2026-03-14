@@ -58,18 +58,22 @@ async function uploadImagem(){
 
 if(!foto) return ""
 
-const nomeArquivo = Date.now()+"_"+foto.name
+const nomeArquivo = Date.now() + "_" + foto.name
 
-await supabase.storage
+const { data, error } = await supabase.storage
 .from("produtos")
-.upload(nomeArquivo,foto)
+.upload(nomeArquivo, foto)
 
-const {data} = supabase
-.storage
+if(error){
+console.log("Erro upload:", error)
+return ""
+}
+
+const { data: url } = supabase.storage
 .from("produtos")
 .getPublicUrl(nomeArquivo)
 
-return data.publicUrl
+return url.publicUrl
 
 }
 
