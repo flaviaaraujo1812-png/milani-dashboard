@@ -1,326 +1,183 @@
 "use client"
 
-import { useState,useEffect } from "react"
-import { supabase } from "../../lib/supabase"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 
-export default function Caixa(){
+type Produto = {
+  id: number
+  nome: string
+  preco: number
+  estoque: number
+  quantidade?: number
+}
 
-const [produtos,setProdutos] = useState<any[]>([])
-const [busca,setBusca] = useState("")
-const [carrinho,setCarrinho] = useState<any[]>([])
+export default function Caixa() {
+
+const [produtos,setProdutos] = useState<Produto[]>([])
+const [carrinho,setCarrinho] = useState<Produto[]>([])
 
 const [cliente,setCliente] = useState("")
 const [endereco,setEndereco] = useState("")
-const [entrega,setEntrega] = useState(0)
+const [taxaEntrega,setTaxaEntrega] = useState(0)
 const [desconto,setDesconto] = useState(0)
-const [pagamento,setPagamento] = useState("Pix")
 
 useEffect(()=>{
-carregarProdutos()
+buscarProdutos()
 },[])
 
-async function carregarProdutos(){
+async function buscarProdutos(){
 
-const { data } = await supabase
+const {data} = await supabase
 .from("produtos")
 .select("*")
 
-if(data){
-setProdutos(data)
-}
+setProdutos(data || [])
 
 }
 
-function adicionarProduto(p:any){
-setCarrinho([...carrinho,p])
-}
+function adicionarProduto(produto:Produto){
 
-function removerProduto(index:number){
+const existente = carrinho.find(p => p.id === produto.id)
 
-const novo = [...carrinho]
-novo.splice(index,1)
+if(existente){
 
-setCarrinho(novo)
-
-}
-
-function cancelarVenda(){
-
-setCarrinho([])
-setCliente("")
-setEndereco("")
-setEntrega(0)
-setDesconto(0)
-
-}
-
-const produtosFiltrados = produtos.filter((p:any)=>
-p.nome?.toLowerCase().includes(busca.toLowerCase())
+setCarrinho(
+carrinho.map(p =>
+p.id === produto.id
+? {...p, quantidade:(p.quantidade || 1) + 1}
+: p
+)
 )
 
-const subtotal = carrinho.reduce((total,p)=> total + Number(p.preco || 0),0)
+}else{
 
-const total = subtotal + Number(entrega) - Number(desconto)
+setCarrinho([...carrinho,{...produto,quantidade:1}])
+
+}
+
+}
+
+function diminuirProduto(produto:Produto){
+
+const existente = carrinho.find(p => p.id === produto.id)
+
+if(!existente) return
+
+if((existente.quantidade || 1) === 1){
+
+setCarrinho(carrinho.filter(p => p.id !== produto.id))
+
+}else{
+
+setCarrinho(
+carrinho.map(p =>
+p.id === produto.id
+? {...p, quantidade:(p.quantidade || 1) - 1}
+: p
+)
+)
+
+}
+
+}
+
+function subtotal(){
+
+return carrinho.reduce((acc,p)=> acc + p.preco * (p.quantidade || 1),0)
+
+}
+
+function total(){
+
+const sub = subtotal()
+
+const valorDesconto = sub * (desconto/100)
+
+return sub - valorDesconto + Number(taxaEntrega)
+
+}
 
 async function finalizarVenda(){
 
-for (const p of carrinho){
+for(const item of carrinho){
 
-const lucro = Number(p.preco) - Number(p.custo)
-
-await supabase
-.from("caixa")
-.insert({
-produto:p.nome,
-valor:p.preco,
-custo:p.custo,
-lucro:lucro,
-cliente:cliente,
-pagamento:pagamento,
-data:new Date().toLocaleDateString()
+await supabase.from("vendas").insert({
+produto:item.nome,
+preco:item.preco,
+quantidade:item.quantidade,
+cliente,
+endereco
 })
 
 await supabase
 .from("produtos")
 .update({
-estoque:p.estoque - 1
+estoque:item.estoque - (item.quantidade || 1)
 })
-.eq("id",p.id)
+.eq("id",item.id)
 
 }
 
-gerarComprovante()
+alert("Venda realizada!")
 
-cancelarVenda()
-
-alert("Venda finalizada!")
-
-}
-
-function gerarComprovante(){
-
-const itens = carrinho.map((p:any)=>
-`• ${p.nome} — R$ ${Number(p.preco).toFixed(2)}`
-).join("\n")
-
-const texto = `🛍️ *MILANI BOLSAS*
-
-👤 Cliente: ${cliente || "Não informado"}
-📍 Endereço: ${endereco || "Retirada na loja"}
-
-📦 Produtos
-${itens}
-
-🚚 Entrega: R$ ${Number(entrega).toFixed(2)}
-💸 Desconto: R$ ${Number(desconto).toFixed(2)}
-
-💰 TOTAL: R$ ${Number(total).toFixed(2)}
-
-💳 Pagamento: ${pagamento}
-
-Obrigado pela preferência ❤️
-`
-
-navigator.clipboard.writeText(texto)
-
-alert("Comprovante copiado! Agora é só colar no WhatsApp.")
+setCarrinho([])
 
 }
 
 return(
 
-<div style={{padding:30,maxWidth:900,margin:"auto"}}>
+<div>
 
 <h1>Caixa de vendas</h1>
 
-<input
-placeholder="Buscar produto"
-value={busca}
-onChange={(e)=>setBusca(e.target.value)}
-style={{
-padding:10,
-width:"100%",
-marginBottom:20,
-borderRadius:8,
-border:"1px solid #ccc"
-}}
-/>
+<h3>Cliente</h3>
+<input value={cliente} onChange={e=>setCliente(e.target.value)} />
 
-<h3>Produtos</h3>
+<h3>Endereço</h3>
+<input value={endereco} onChange={e=>setEndereco(e.target.value)} />
 
-{produtosFiltrados.map((p:any)=>(
+<h3>Taxa de entrega</h3>
+<input type="number" onChange={e=>setTaxaEntrega(Number(e.target.value))} />
 
-<div key={p.id}
-style={{
-border:"1px solid #eee",
-padding:10,
-marginBottom:10,
-borderRadius:8
-}}
->
+<h3>Desconto %</h3>
+<input type="number" onChange={e=>setDesconto(Number(e.target.value))} />
 
-{p.foto && (
+<h2>Produtos</h2>
 
-<img
-src={p.foto}
-style={{
-width:80,
-height:80,
-objectFit:"cover",
-borderRadius:8,
-marginBottom:10
-}}
-/>
+{produtos.map(p=>(
+<div key={p.id}>
 
-)}
+<p>{p.nome} - R$ {p.preco}</p>
 
-<b>{p.nome}</b>
-
-<p>R$ {p.preco}</p>
-
-<button
-onClick={()=>adicionarProduto(p)}
-style={{
-background:"#c49a6c",
-color:"#fff",
-border:"none",
-padding:"6px 12px",
-borderRadius:6,
-cursor:"pointer"
-}}
->
+<button onClick={()=>adicionarProduto(p)}>
 Adicionar
 </button>
 
 </div>
-
 ))}
 
-<hr style={{margin:"20px 0"}}/>
+<h2>Carrinho</h2>
 
-<h3>Carrinho</h3>
+{carrinho.map(p=>(
+<div key={p.id}>
 
-{carrinho.map((p:any,i:number)=>(
+<p>{p.nome}</p>
 
-<div key={i} style={{marginBottom:5}}>
+<button onClick={()=>diminuirProduto(p)}>➖</button>
 
-{p.nome} — R$ {p.preco}
+{p.quantidade}
 
-<button
-onClick={()=>removerProduto(i)}
-style={{
-marginLeft:10,
-background:"#e63946",
-color:"#fff",
-border:"none",
-padding:"3px 8px",
-borderRadius:5,
-cursor:"pointer"
-}}
->
-x
-</button>
+<button onClick={()=>adicionarProduto(p)}>➕</button>
 
 </div>
-
 ))}
 
-<p>Subtotal: R$ {subtotal.toFixed(2)}</p>
+<h3>Subtotal: {subtotal()}</h3>
 
-<hr style={{margin:"20px 0"}}/>
+<h3>Total: {total()}</h3>
 
-<h3>Cliente</h3>
-
-<input
-placeholder="Nome do cliente"
-value={cliente}
-onChange={(e)=>setCliente(e.target.value)}
-/>
-
-<br/><br/>
-
-<input
-placeholder="Endereço"
-value={endereco}
-onChange={(e)=>setEndereco(e.target.value)}
-/>
-
-<br/><br/>
-
-<label>Taxa de entrega</label>
-
-<br/>
-
-<input
-type="number"
-value={entrega}
-onChange={(e)=>setEntrega(Number(e.target.value))}
-/>
-
-<br/><br/>
-
-<label>Desconto</label>
-
-<br/>
-
-<input
-type="number"
-value={desconto}
-onChange={(e)=>setDesconto(Number(e.target.value))}
-/>
-
-<br/><br/>
-
-<label>Forma de pagamento</label>
-
-<br/>
-
-<select
-value={pagamento}
-onChange={(e)=>setPagamento(e.target.value)}
->
-
-<option>Pix</option>
-<option>Dinheiro</option>
-<option>Cartão</option>
-<option>Transferência</option>
-
-</select>
-
-<hr style={{margin:"20px 0"}}/>
-
-<p>Entrega: R$ {Number(entrega).toFixed(2)}</p>
-<p>Desconto: R$ {Number(desconto).toFixed(2)}</p>
-
-<h2>Total: R$ {total.toFixed(2)}</h2>
-
-<button
-onClick={finalizarVenda}
-style={{
-background:"#c49a6c",
-color:"#fff",
-border:"none",
-padding:"10px 20px",
-borderRadius:8,
-cursor:"pointer"
-}}
->
+<button onClick={finalizarVenda}>
 Finalizar venda
-</button>
-
-<button
-onClick={cancelarVenda}
-style={{
-background:"#6c757d",
-color:"#fff",
-border:"none",
-padding:"10px 20px",
-borderRadius:8,
-cursor:"pointer",
-marginLeft:10
-}}
->
-Cancelar venda
 </button>
 
 </div>
