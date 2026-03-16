@@ -31,7 +31,7 @@ async function carregarProdutos(){
 const {data} = await supabase
 .from("produtos")
 .select("*")
-.order("id",{ascending:true})
+.order("nome",{ascending:true})
 
 setProdutos(data || [])
 
@@ -57,30 +57,27 @@ async function uploadImagem(){
 
 if(!foto) return ""
 
-const reader = new FileReader()
+const nomeArquivo = Date.now()+"_"+foto.name
 
-return new Promise((resolve)=>{
+await supabase.storage
+.from("produtos")
+.upload(nomeArquivo,foto)
 
-reader.onload = function(e:any){
+const {data} = supabase
+.storage
+.from("produtos")
+.getPublicUrl(nomeArquivo)
 
-resolve(e.target.result)
-
-}
-
-reader.readAsDataURL(foto)
-
-})
+return data.publicUrl
 
 }
 
 async function salvarProduto(){
 
-let urlFoto = preview
+let urlFoto = ""
 
 if(foto){
-
-urlFoto = await uploadImagem() as string
-
+urlFoto = await uploadImagem()
 }
 
 const dados = {
@@ -129,7 +126,6 @@ setPreco(p.preco)
 setCusto(p.custo)
 setEstoque(p.estoque)
 setCores(p.cores)
-setPreview(p.foto)
 
 }
 
@@ -146,7 +142,7 @@ carregarProdutos()
 
 return(
 
-<div style={{padding:20}}>
+<div style={{padding:20,width:"100%"}}>
 
 <h2>Cadastrar Produto</h2>
 
@@ -183,7 +179,7 @@ onChange={(e)=>setEstoque(e.target.value)}
 <br/><br/>
 
 <input
-placeholder="Cores (ex: preta,bege)"
+placeholder="Cores (ex: Preto,Bege)"
 value={cores}
 onChange={(e)=>setCores(e.target.value)}
 />
@@ -202,6 +198,7 @@ onChange={selecionarFoto}
 <img
 src={preview}
 width="120"
+style={{borderRadius:8}}
 />
 
 )}
@@ -225,7 +222,7 @@ Salvar Produto
 
 <hr/>
 
-<h2>Produtos</h2>
+<h2>Produtos cadastrados</h2>
 
 <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
 
@@ -260,18 +257,15 @@ borderRadius:8
 
 <button
 onClick={()=>editarProduto(p)}
+style={{marginRight:5}}
 >
-
 Editar
-
 </button>
 
 <button
 onClick={()=>excluirProduto(p.id)}
 >
-
 Excluir
-
 </button>
 
 </div>
