@@ -17,7 +17,6 @@ const [preco,setPreco] = useState("")
 const [custo,setCusto] = useState("")
 const [estoque,setEstoque] = useState("")
 const [cores,setCores] = useState("")
-
 const [foto,setFoto] = useState<any>(null)
 const [preview,setPreview] = useState("")
 
@@ -32,7 +31,7 @@ async function carregarProdutos(){
 const {data} = await supabase
 .from("produtos")
 .select("*")
-.order("nome",{ascending:true})
+.order("id",{ascending:true})
 
 setProdutos(data || [])
 
@@ -58,31 +57,30 @@ async function uploadImagem(){
 
 if(!foto) return ""
 
-const nomeArquivo = Date.now() + "_" + foto.name
+const reader = new FileReader()
 
-const { data, error } = await supabase.storage
-.from("produtos")
-.upload(nomeArquivo, foto)
+return new Promise((resolve)=>{
 
-if(error){
-console.log("Erro upload:", error)
-return ""
+reader.onload = function(e:any){
+
+resolve(e.target.result)
+
 }
 
-const { data: url } = supabase.storage
-.from("produtos")
-.getPublicUrl(nomeArquivo)
+reader.readAsDataURL(foto)
 
-return url.publicUrl
+})
 
 }
 
 async function salvarProduto(){
 
-let urlFoto = produtoEditando?.foto || ""
+let urlFoto = preview
 
 if(foto){
-urlFoto = await uploadImagem()
+
+urlFoto = await uploadImagem() as string
+
 }
 
 const dados = {
@@ -148,7 +146,7 @@ carregarProdutos()
 
 return(
 
-<div style={{padding:20,width:"100%"}}>
+<div style={{padding:20}}>
 
 <h2>Cadastrar Produto</h2>
 
@@ -185,7 +183,7 @@ onChange={(e)=>setEstoque(e.target.value)}
 <br/><br/>
 
 <input
-placeholder="Cores (ex: Preto,Marrom,Bege)"
+placeholder="Cores (ex: preta,bege)"
 value={cores}
 onChange={(e)=>setCores(e.target.value)}
 />
@@ -204,7 +202,6 @@ onChange={selecionarFoto}
 <img
 src={preview}
 width="120"
-style={{borderRadius:8}}
 />
 
 )}
@@ -218,8 +215,7 @@ background:"#ec4899",
 color:"white",
 padding:"10px 20px",
 border:"none",
-borderRadius:6,
-cursor:"pointer"
+borderRadius:6
 }}
 >
 
@@ -229,7 +225,7 @@ Salvar Produto
 
 <hr/>
 
-<h2>Produtos cadastrados</h2>
+<h2>Produtos</h2>
 
 <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
 
@@ -264,7 +260,6 @@ borderRadius:8
 
 <button
 onClick={()=>editarProduto(p)}
-style={{marginRight:5}}
 >
 
 Editar
