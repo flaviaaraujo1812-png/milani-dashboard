@@ -8,7 +8,6 @@ type Produto = {
   nome: string
   preco: number
   estoque: number
-  cores?: string
   quantidade?: number
 }
 
@@ -59,14 +58,17 @@ function subtotal(){
 return carrinho.reduce((acc,p)=> acc + p.preco * (p.quantidade || 1),0)
 }
 
+// ✅ DESCONTO EM PORCENTAGEM
 function total(){
 
 const sub = subtotal()
-
 const valorDesconto = sub * (desconto / 100)
 
 return sub - valorDesconto + taxaEntrega
+}
 
+function valorDesconto(){
+return subtotal() * (desconto / 100)
 }
 
 function cancelarVenda(){
@@ -96,7 +98,7 @@ texto += `• ${p.nome} x${p.quantidade} - R$ ${p.preco}\n`
 texto += `
 Subtotal: R$ ${subtotal().toFixed(2)}
 Entrega: R$ ${taxaEntrega}
-Desconto: $ ${desconto}%
+Desconto: ${desconto}% (R$ ${valorDesconto().toFixed(2)})
 
 Total: R$ ${total().toFixed(2)}
 Pagamento: ${pagamento}
@@ -104,7 +106,6 @@ Pagamento: ${pagamento}
 
 navigator.clipboard.writeText(texto)
 alert("Pedido copiado!")
-
 }
 
 async function finalizarVenda(){
@@ -113,11 +114,9 @@ for(const item of carrinho){
 
 await supabase.from("caixa").insert({
 produto:item.nome,
-preco:item.preco,
+valor:item.preco,
 quantidade:item.quantidade,
 cliente,
-telefone,
-endereco,
 pagamento,
 total: total()
 })
@@ -132,7 +131,6 @@ estoque:item.estoque - (item.quantidade || 1)
 }
 
 alert("Venda salva com sucesso!")
-
 cancelarVenda()
 
 }
@@ -167,7 +165,7 @@ return(
 <h3>Taxa de entrega</h3>
 <input type="number" value={taxaEntrega} onChange={e=>setTaxaEntrega(Number(e.target.value))} />
 
-<h3>Desconto</h3>
+<h3>Desconto (%)</h3>
 <input type="number" value={desconto} onChange={e=>setDesconto(Number(e.target.value))} />
 
 </div>
@@ -200,7 +198,7 @@ return(
 
 <h3>Subtotal: R$ {subtotal().toFixed(2)}</h3>
 <p>Entrega: R$ {taxaEntrega}</p>
-<p>Desconto: R$ {desconto}</p>
+<p>Desconto: {desconto}% (R$ {valorDesconto().toFixed(2)})</p>
 
 <h2>Total: R$ {total().toFixed(2)}</h2>
 
