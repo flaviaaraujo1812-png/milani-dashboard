@@ -8,13 +8,18 @@ type Produto = {
   nome: string
   preco: number
   estoque: number
-  quantidade?: number
+  cores?: string
+}
+
+type ItemCarrinho = Produto & {
+  quantidade: number
+  corSelecionada?: string
 }
 
 export default function Caixa() {
 
 const [produtos,setProdutos] = useState<Produto[]>([])
-const [carrinho,setCarrinho] = useState<Produto[]>([])
+const [carrinho,setCarrinho] = useState<ItemCarrinho[]>([])
 const [busca,setBusca] = useState("")
 
 const [cliente,setCliente] = useState("")
@@ -34,6 +39,11 @@ const {data} = await supabase.from("produtos").select("*")
 setProdutos(data || [])
 }
 
+// GERAR ID DO PEDIDO
+function gerarPedidoId(){
+return "PED-" + Date.now()
+}
+
 function adicionarProduto(produto:Produto){
 
 const existe = carrinho.find(p=>p.id === produto.id)
@@ -41,7 +51,7 @@ const existe = carrinho.find(p=>p.id === produto.id)
 if(existe){
 setCarrinho(carrinho.map(p =>
 p.id === produto.id
-? {...p, quantidade:(p.quantidade || 1)+1}
+? {...p, quantidade:p.quantidade + 1}
 : p
 ))
 }else{
@@ -54,21 +64,22 @@ function removerProduto(produto:Produto){
 setCarrinho(carrinho.filter(p=>p.id !== produto.id))
 }
 
-function subtotal(){
-return carrinho.reduce((acc,p)=> acc + p.preco * (p.quantidade || 1),0)
+function alterarCor(id:number, cor:string){
+setCarrinho(carrinho.map(p =>
+p.id === id ? {...p, corSelecionada:cor} : p
+))
 }
 
-// ✅ DESCONTO EM PORCENTAGEM
-function total(){
-
-const sub = subtotal()
-const valorDesconto = sub * (desconto / 100)
-
-return sub - valorDesconto + taxaEntrega
+function subtotal(){
+return carrinho.reduce((acc,p)=> acc + p.preco * p.quantidade,0)
 }
 
 function valorDesconto(){
 return subtotal() * (desconto / 100)
+}
+
+function total(){
+return subtotal() - valorDesconto() + taxaEntrega
 }
 
 function cancelarVenda(){
@@ -80,6 +91,7 @@ setTaxaEntrega(0)
 setDesconto(0)
 }
 
+// COPIAR PEDIDO
 function copiarPedido(){
 
 let texto = `Pedido - Milani Bolsas
@@ -92,7 +104,7 @@ Itens:
 `
 
 carrinho.forEach(p=>{
-texto += `• ${p.nome} x${p.quantidade} - R$ ${p.preco}\n`
+texto += `• ${p.nome} (${p.corSelecionada || "sem cor"}) x${p.quantidade} - R$ ${p.preco}\n`
 })
 
 texto += `
@@ -108,23 +120,25 @@ navigator.clipboard.writeText(texto)
 alert("Pedido copiado!")
 }
 
+// SALVAR VENDA AGRUPADA
 async function finalizarVenda(){
 
-for(const item of carrinho){
+const pedidoId = gerarPedidoId()
 
 await supabase.from("caixa").insert({
-produto:item.nome,
-valor:item.preco,
-quantidade:item.quantidade,
+pedido_id: pedidoId,
 cliente,
 pagamento,
-total: total()
+valor: total(),
+itens: carrinho
 })
+
+for(const item of carrinho){
 
 await supabase
 .from("produtos")
 .update({
-estoque:item.estoque - (item.quantidade || 1)
+estoque:item.estoque - item.quantidade
 })
 .eq("id",item.id)
 
@@ -174,24 +188,43 @@ return(
 <div style={{width:"70%"}}>
 
 <h3>Buscar produto</h3>
-<input placeholder="B01" onChange={e=>setBusca(e.target.value)} />
+<input onChange={e=>setBusca(e.target.value)} />
 
 <h3>Produtos</h3>
 
 {produtos
 .filter(p=>p.nome.toLowerCase().includes(busca.toLowerCase()))
-.map(p=>(
+.map(p=>{
+
+const cores = p.cores ? p.cores.split(",") : []
+
+return(
 <div key={p.id}>
+
 {p.nome} - R$ {p.preco}
-<button onClick={()=>adicionarProduto(p)}>Adicionar</button>
-</div>
+
+<button onClick={()=>adicionarProduto(p)}>
+Adicionar
+</button>
+
+{cores.length > 0 && (
+<select onChange={(e)=>alterarCor(p.id,e.target.value)}>
+<option>Cor</option>
+{cores.map((c,i)=>(
+<option key={i}>{c}</option>
 ))}
+</select>
+)}
+
+</div>
+)
+})}
 
 <h3>Carrinho</h3>
 
 {carrinho.map(p=>(
 <div key={p.id}>
-{p.nome} x{p.quantidade} - R$ {p.preco}
+{p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
 <button onClick={()=>removerProduto(p)}>X</button>
 </div>
 ))}
@@ -221,5 +254,4 @@ Cancelar venda
 </div>
 
 )
-
 }
