@@ -105,7 +105,7 @@ async function finalizarVenda(){
 
 for(const item of carrinho){
 
-await supabase.from("vendas").insert({
+await supabase.from("caixa").insert({
 produto:item.nome,
 preco:item.preco,
 quantidade:item.quantidade,
