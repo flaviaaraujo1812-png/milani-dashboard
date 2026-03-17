@@ -60,7 +60,13 @@ return carrinho.reduce((acc,p)=> acc + p.preco * (p.quantidade || 1),0)
 }
 
 function total(){
-return subtotal() + taxaEntrega - desconto
+
+const sub = subtotal()
+
+const valorDesconto = sub * (desconto / 100)
+
+return sub - valorDesconto + taxaEntrega
+
 }
 
 function cancelarVenda(){
@@ -90,7 +96,7 @@ texto += `• ${p.nome} x${p.quantidade} - R$ ${p.preco}\n`
 texto += `
 Subtotal: R$ ${subtotal().toFixed(2)}
 Entrega: R$ ${taxaEntrega}
-Desconto: R$ ${desconto}
+Desconto: $ ${desconto}%
 
 Total: R$ ${total().toFixed(2)}
 Pagamento: ${pagamento}
