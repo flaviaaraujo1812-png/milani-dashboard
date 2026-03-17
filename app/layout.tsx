@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
+
 
 type Produto = {
   id: number
@@ -18,6 +20,7 @@ type ItemCarrinho = Produto & {
 
 export default function Caixa(){
 
+const router = useRouter()
 const [produtos,setProdutos] = useState<Produto[]>([])
 const [carrinho,setCarrinho] = useState<ItemCarrinho[]>([])
 const [busca,setBusca] = useState("")
@@ -122,9 +125,21 @@ padding:"20px"
 
 <h2 style={{color:"#C9A227"}}>Milani</h2>
 
-<p>Caixa</p>
-<p>Produtos</p>
-<p>Relatório</p>
+<p style={{cursor:"pointer"}} onClick={()=>router.push("/")}>
+Caixa
+</p>
+
+<p style={{cursor:"pointer"}} onClick={()=>router.push("/produtos")}>
+Produtos
+</p>
+
+<p style={{cursor:"pointer"}} onClick={()=>router.push("/relatorio")}>
+Relatório
+</p>
+
+<p style={{cursor:"pointer"}} onClick={()=>router.push("/dashboard")}>
+Dashboard
+</p>
 
 </div>
 
