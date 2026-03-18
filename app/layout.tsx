@@ -1,285 +1,94 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 
+export default function RootLayout({
+children,
+}:{
+children: React.ReactNode
+}) {
 
-type Produto = {
-  id: number
-  nome: string
-  preco: number
-  estoque: number
-  cores?: string
-}
+return (
 
-type ItemCarrinho = Produto & {
-  quantidade: number
-  corSelecionada?: string
-}
+<html lang="pt-br">
+<body style={{margin:0,fontFamily:"Arial"}}>
 
-export default function Caixa(){
-
-const router = useRouter()
-const [produtos,setProdutos] = useState<Produto[]>([])
-const [carrinho,setCarrinho] = useState<ItemCarrinho[]>([])
-const [busca,setBusca] = useState("")
-
-const [cliente,setCliente] = useState("")
-const [telefone,setTelefone] = useState("")
-const [endereco,setEndereco] = useState("")
-const [pagamento,setPagamento] = useState("Pix")
-
-const [taxaEntrega,setTaxaEntrega] = useState(0)
-const [desconto,setDesconto] = useState(0)
-
-useEffect(()=>{
-buscarProdutos()
-},[])
-
-async function buscarProdutos(){
-const {data} = await supabase.from("produtos").select("*")
-setProdutos(data || [])
-}
-
-function adicionarProduto(produto:Produto){
-const existe = carrinho.find(p=>p.id === produto.id)
-
-if(existe){
-setCarrinho(carrinho.map(p =>
-p.id === produto.id
-? {...p, quantidade:p.quantidade + 1}
-: p
-))
-}else{
-setCarrinho([...carrinho,{...produto, quantidade:1}])
-}
-}
-
-function removerProduto(produto:Produto){
-setCarrinho(carrinho.filter(p=>p.id !== produto.id))
-}
-
-function alterarCor(id:number, cor:string){
-setCarrinho(carrinho.map(p =>
-p.id === id ? {...p, corSelecionada:cor} : p
-))
-}
-
-function subtotal(){
-return carrinho.reduce((acc,p)=> acc + p.preco * p.quantidade,0)
-}
-
-function valorDesconto(){
-return subtotal() * (desconto / 100)
-}
-
-function total(){
-return subtotal() - valorDesconto() + taxaEntrega
-}
-
-function cancelarVenda(){
-setCarrinho([])
-setCliente("")
-setTelefone("")
-setEndereco("")
-setTaxaEntrega(0)
-setDesconto(0)
-}
-
-async function finalizarVenda(){
-
-await supabase.from("caixa").insert({
-cliente,
-pagamento,
-valor: total(),
-itens: carrinho
-})
-
-for(const item of carrinho){
-await supabase
-.from("produtos")
-.update({estoque:item.estoque - item.quantidade})
-.eq("id",item.id)
-}
-
-alert("Venda salva!")
-cancelarVenda()
-}
-
-return(
-
-<div style={{
-display:"flex",
-minHeight:"100vh",
-background:"#F5E6DC"
-}}>
+<div style={{display:"flex",height:"100vh"}}>
 
 {/* MENU */}
 <div style={{
-width:"220px",
+width:230,
 background:"#6B3E2E",
 color:"#fff",
-padding:"20px"
+padding:"20px 15px",
+display:"flex",
+flexDirection:"column",
+justifyContent:"space-between"
 }}>
 
-<h2 style={{color:"#C9A227"}}>Milani</h2>
+<div>
+<h2 style={{
+color:"#C9A227",
+marginBottom:30
+}}>
+Milani
+</h2>
 
-<p style={{cursor:"pointer"}} onClick={()=>router.push("/")}>
-Caixa
-</p>
+<div style={{display:"flex",flexDirection:"column",gap:12}}>
 
-<p style={{cursor:"pointer"}} onClick={()=>router.push("/produtos")}>
-Produtos
-</p>
+<Link href="/" style={menuItem}>💰 Caixa</Link>
+<Link href="/produtos" style={menuItem}>📦 Produtos</Link>
+<Link href="/relatorio" style={menuItem}>📑 Relatório</Link>
+<Link href="/dashboard" style={menuItem}>📊 Dashboard</Link>
 
-<p style={{cursor:"pointer"}} onClick={()=>router.push("/relatorio")}>
-Relatório
-</p>
+</div>
+</div>
 
-<p style={{cursor:"pointer"}} onClick={()=>router.push("/dashboard")}>
-Dashboard
-</p>
+<div style={{
+fontSize:12,
+opacity:0.7
+}}>
+Sistema Milani ©
+</div>
 
 </div>
 
 {/* CONTEÚDO */}
-<div style={{flex:1, padding:"20px"}}>
-
-<h1 style={{color:"#6B3E2E"}}>Caixa de Vendas</h1>
-
-<div style={{display:"flex", gap:"20px"}}>
-
-{/* CLIENTE */}
 <div style={{
-width:"30%",
-background:"#fff",
-padding:"15px",
-borderRadius:"10px"
+flex:1,
+background:"#F5E6DC",
+padding:"25px",
+overflowY:"auto"
 }}>
 
-<h3>Cliente</h3>
-<input value={cliente} onChange={e=>setCliente(e.target.value)} />
+{/* CAIXA DE CONTEÚDO */}
+<div style={{
+background:"#fff",
+borderRadius:12,
+padding:20,
+minHeight:"100%",
+boxShadow:"0 4px 15px rgba(0,0,0,0.08)"
+}}>
 
-<h3>Telefone</h3>
-<input value={telefone} onChange={e=>setTelefone(e.target.value)} />
-
-<h3>Endereço</h3>
-<input value={endereco} onChange={e=>setEndereco(e.target.value)} />
-
-<h3>Pagamento</h3>
-<select onChange={e=>setPagamento(e.target.value)}>
-<option>Pix</option>
-<option>Dinheiro</option>
-<option>Cartão</option>
-</select>
-
-<h3>Entrega</h3>
-<input type="number" onChange={e=>setTaxaEntrega(Number(e.target.value))} />
-
-<h3>Desconto (%)</h3>
-<input type="number" onChange={e=>setDesconto(Number(e.target.value))} />
+{children}
 
 </div>
 
-{/* PRODUTOS */}
-<div style={{
-width:"70%",
-background:"#fff",
-padding:"15px",
-borderRadius:"10px"
-}}>
-
-<input
-placeholder="Buscar produto"
-onChange={e=>setBusca(e.target.value)}
-/>
-
-{produtos
-.filter(p=>p.nome.toLowerCase().includes(busca.toLowerCase()))
-.map(p=>{
-
-const cores = p.cores ? p.cores.split(",") : []
-
-return(
-<div key={p.id} style={{marginBottom:"10px"}}>
-
-{p.nome} - R$ {p.preco}
-
-<button
-onClick={()=>adicionarProduto(p)}
-style={{
-marginLeft:10,
-background:"#E8AEB7",
-border:"none",
-padding:"5px 10px",
-borderRadius:"6px"
-}}
->
-Adicionar
-</button>
-
-{cores.length > 0 && (
-<select onChange={(e)=>alterarCor(p.id,e.target.value)}>
-<option>Cor</option>
-{cores.map((c,i)=>(
-<option key={i}>{c}</option>
-))}
-</select>
-)}
+</div>
 
 </div>
+
+</body>
+</html>
+
 )
-})}
+}
 
-<hr/>
-
-<h3>Carrinho</h3>
-
-{carrinho.map(p=>(
-<div key={p.id}>
-{p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
-<button onClick={()=>removerProduto(p)}>X</button>
-</div>
-))}
-
-<h3>Subtotal: R$ {subtotal().toFixed(2)}</h3>
-<p>Entrega: R$ {taxaEntrega}</p>
-<p>Desconto: {desconto}%</p>
-
-<h2 style={{color:"#C9A227"}}>
-Total: R$ {total().toFixed(2)}
-</h2>
-
-<button
-onClick={finalizarVenda}
-style={{
-background:"#E8AEB7",
+const menuItem = {
 color:"#fff",
+textDecoration:"none",
 padding:"10px",
-border:"none",
-borderRadius:"8px"
-}}
->
-Finalizar venda
-</button>
-
-<button
-onClick={cancelarVenda}
-style={{
-marginLeft:10
-}}
->
-Cancelar
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-)
+borderRadius:"8px",
+transition:"0.3s",
+background:"transparent"
 }
