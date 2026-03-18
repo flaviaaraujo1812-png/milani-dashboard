@@ -4,107 +4,120 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 type Produto = {
-  id: number
-  nome: string
-  preco: number
-  estoque: number
-  cores?: string
+  id:number
+  nome:string
+  preco:number
+  estoque:number
+  cores?:string
 }
 
-type ItemCarrinho = Produto & {
-  quantidade: number
-  corSelecionada?: string
+type Item = Produto & {
+  quantidade:number
+  corSelecionada?:string
 }
 
 export default function Caixa(){
 
 const [produtos,setProdutos] = useState<Produto[]>([])
-const [carrinho,setCarrinho] = useState<ItemCarrinho[]>([])
-const [busca,setBusca] = useState("")
+const [carrinho,setCarrinho] = useState<Item[]>([])
 
+const [busca,setBusca] = useState("")
 const [cliente,setCliente] = useState("")
 const [telefone,setTelefone] = useState("")
-const [endereco,setEndereco] = useState("")
 const [pagamento,setPagamento] = useState("Pix")
 
-const [taxaEntrega,setTaxaEntrega] = useState(0)
+const [taxa,setTaxa] = useState(0)
 const [desconto,setDesconto] = useState(0)
 
 useEffect(()=>{
-buscarProdutos()
+carregar()
 },[])
 
-async function buscarProdutos(){
+async function carregar(){
 const {data} = await supabase.from("produtos").select("*")
 setProdutos(data || [])
 }
 
-function adicionarProduto(produto:Produto){
-const existe = carrinho.find(p=>p.id === produto.id)
+function add(prod:Produto){
+const existe = carrinho.find(p=>p.id===prod.id)
 
 if(existe){
-setCarrinho(carrinho.map(p =>
-p.id === produto.id
-? {...p, quantidade:p.quantidade + 1}
-: p
-))
+setCarrinho(carrinho.map(p=>p.id===prod.id ? {...p,quantidade:p.quantidade+1}:p))
 }else{
-setCarrinho([...carrinho,{...produto, quantidade:1}])
+setCarrinho([...carrinho,{...prod,quantidade:1}])
 }
 }
 
-function removerProduto(produto:Produto){
-setCarrinho(carrinho.filter(p=>p.id !== produto.id))
-}
-
-function alterarCor(id:number, cor:string){
-setCarrinho(carrinho.map(p =>
-p.id === id ? {...p, corSelecionada:cor} : p
-))
+function remove(id:number){
+setCarrinho(carrinho.filter(p=>p.id!==id))
 }
 
 function subtotal(){
-return carrinho.reduce((acc,p)=> acc + p.preco * p.quantidade,0)
+return carrinho.reduce((t,p)=> t + p.preco*p.quantidade,0)
 }
 
 function valorDesconto(){
-return subtotal() * (desconto / 100)
+return subtotal()*(desconto/100)
 }
 
 function total(){
-return subtotal() - valorDesconto() + taxaEntrega
+return subtotal() - valorDesconto() + taxa
 }
 
-function cancelarVenda(){
+function cancelar(){
 setCarrinho([])
 setCliente("")
 setTelefone("")
-setEndereco("")
-setTaxaEntrega(0)
+setTaxa(0)
 setDesconto(0)
 }
 
-async function finalizarVenda(){
+function mensagem(){
+
+let msg = `🛍️ *Pedido - Milani*%0A%0A`
+
+msg += `👤 ${cliente}%0A📞 ${telefone}%0A%0A`
+
+msg += `🛒 *Itens:*%0A`
+
+carrinho.forEach(p=>{
+msg += `- ${p.nome} x${p.quantidade} = R$ ${(p.preco*p.quantidade).toFixed(2)}%0A`
+})
+
+msg += `%0A💰 Total: R$ ${total().toFixed(2)}%0A`
+msg += `💳 ${pagamento}%0A`
+msg += `%0A✨ Obrigado pela preferência!`
+
+const numero = telefone.replace(/\D/g,"")
+
+window.open(`https://wa.me/55${numero}?text=${msg}`,"_blank")
+}
+
+async function finalizar(){
+
+if(!confirm("Finalizar venda?")) return
 
 await supabase.from("caixa").insert({
 cliente,
+valor:total(),
 pagamento,
-valor: total(),
-itens: carrinho
+itens:carrinho
 })
 
-for(const item of carrinho){
+for(const i of carrinho){
 await supabase
 .from("produtos")
-.update({estoque:item.estoque - item.quantidade})
-.eq("id",item.id)
+.update({estoque:i.estoque - i.quantidade})
+.eq("id",i.id)
 }
 
+mensagem()
+cancelar()
 alert("Venda salva!")
-cancelarVenda()
+
 }
 
-const inputStyle = {
+const input = {
 width:"100%",
 padding:"10px",
 borderRadius:"8px",
@@ -112,125 +125,72 @@ border:"1px solid #D8C3A5",
 marginBottom:"10px"
 }
 
-const buttonStyle = {
+const btn = {
 background:"#E8AEB7",
 color:"#fff",
 border:"none",
 padding:"10px",
 borderRadius:"8px",
-cursor:"pointer",
-fontWeight:"bold"
+cursor:"pointer"
 }
 
 return(
 
 <div>
 
-<h1 style={{color:"#6B3E2E", marginBottom:"20px"}}>
-Caixa de Vendas
-</h1>
+<h1 style={{color:"#6B3E2E"}}>Caixa</h1>
 
-<div style={{display:"flex", gap:"20px", flexWrap:"wrap"}}>
+<div style={{display:"flex",gap:"20px",flexWrap:"wrap"}}>
 
 {/* CLIENTE */}
 <div style={{
-flex:"1",
-minWidth:"280px",
+flex:1,
 background:"#fff",
 padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
+borderRadius:"12px"
 }}>
 
 <h3>Cliente</h3>
-<input style={inputStyle} value={cliente} onChange={e=>setCliente(e.target.value)} />
+<input style={input} placeholder="Nome" value={cliente} onChange={e=>setCliente(e.target.value)} />
 
-<h3>Telefone</h3>
-<input style={inputStyle} value={telefone} onChange={e=>setTelefone(e.target.value)} />
+<input style={input} placeholder="Telefone" value={telefone} onChange={e=>setTelefone(e.target.value)} />
 
-<h3>Endereço</h3>
-<input style={inputStyle} value={endereco} onChange={e=>setEndereco(e.target.value)} />
-
-<h3>Pagamento</h3>
-<select style={inputStyle} onChange={e=>setPagamento(e.target.value)}>
+<select style={input} onChange={e=>setPagamento(e.target.value)}>
 <option>Pix</option>
 <option>Dinheiro</option>
 <option>Cartão</option>
 </select>
 
-<h3>Entrega</h3>
-<input style={inputStyle} type="number" onChange={e=>setTaxaEntrega(Number(e.target.value))} />
+<input style={input} type="number" placeholder="Entrega" onChange={e=>setTaxa(Number(e.target.value))} />
 
-<h3>Desconto (%)</h3>
-<input style={inputStyle} type="number" onChange={e=>setDesconto(Number(e.target.value))} />
+<input style={input} type="number" placeholder="Desconto %" onChange={e=>setDesconto(Number(e.target.value))} />
 
 </div>
 
-{/* PRODUTOS + CARRINHO */}
+{/* VENDA */}
 <div style={{
-flex:"2",
-minWidth:"320px",
+flex:2,
 background:"#fff",
 padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
+borderRadius:"12px"
 }}>
 
-<input
-placeholder="Buscar produto"
-style={inputStyle}
-onChange={e=>setBusca(e.target.value)}
-/>
+<input placeholder="Buscar" style={input} onChange={e=>setBusca(e.target.value)} />
 
-<div style={{
-maxHeight:"250px",
-overflowY:"auto",
-marginBottom:"15px"
-}}>
+<div style={{maxHeight:200,overflowY:"auto"}}>
+
 {produtos
 .filter(p=>p.nome.toLowerCase().includes(busca.toLowerCase()))
-.map(p=>{
+.map(p=>(
+<div key={p.id} style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}>
 
-const cores = p.cores ? p.cores.split(",") : []
+<span>{p.nome} - R$ {p.preco}</span>
 
-return(
-<div key={p.id} style={{
-display:"flex",
-justifyContent:"space-between",
-alignItems:"center",
-marginBottom:"10px"
-}}>
+<button style={btn} onClick={()=>add(p)}>+</button>
 
-<div>
-{p.nome} - R$ {p.preco}
 </div>
-
-<div>
-
-<button
-onClick={()=>adicionarProduto(p)}
-style={{...buttonStyle, padding:"5px 10px", marginRight:"5px"}}
->
-+
-</button>
-
-{cores.length > 0 && (
-<select
-style={{borderRadius:"6px", padding:"5px"}}
-onChange={(e)=>alterarCor(p.id,e.target.value)}
->
-<option>Cor</option>
-{cores.map((c,i)=>(
-<option key={i}>{c}</option>
 ))}
-</select>
-)}
 
-</div>
-
-</div>
-)
-})}
 </div>
 
 <hr/>
@@ -238,42 +198,32 @@ onChange={(e)=>alterarCor(p.id,e.target.value)}
 <h3>Carrinho</h3>
 
 {carrinho.map(p=>(
-<div key={p.id} style={{
-display:"flex",
-justifyContent:"space-between",
-marginBottom:"8px"
-}}>
-<div>
-{p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
-</div>
+<div key={p.id} style={{display:"flex",justifyContent:"space-between"}}>
 
-<button
-onClick={()=>removerProduto(p)}
-style={{background:"red", color:"#fff", border:"none", borderRadius:"6px"}}
->
-X
-</button>
+<span>{p.nome} x{p.quantidade}</span>
+
+<button onClick={()=>remove(p.id)}>X</button>
 
 </div>
 ))}
 
 <hr/>
 
-<h3>Subtotal: R$ {subtotal().toFixed(2)}</h3>
-<p>Entrega: R$ {taxaEntrega}</p>
+<p>Subtotal: R$ {subtotal().toFixed(2)}</p>
 <p>Desconto: {desconto}%</p>
+<p>Entrega: R$ {taxa}</p>
 
 <h2 style={{color:"#C9A227"}}>
 Total: R$ {total().toFixed(2)}
 </h2>
 
-<div style={{display:"flex", gap:"10px"}}>
+<div style={{display:"flex",gap:"10px"}}>
 
-<button onClick={finalizarVenda} style={{...buttonStyle, flex:1}}>
-Finalizar venda
+<button style={btn} onClick={finalizar}>
+Finalizar
 </button>
 
-<button onClick={cancelarVenda} style={{flex:1}}>
+<button onClick={cancelar}>
 Cancelar
 </button>
 
