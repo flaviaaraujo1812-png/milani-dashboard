@@ -42,13 +42,8 @@ function selecionarFoto(e:any){
 const file = e.target.files[0]
 
 if(file){
-
 setFoto(file)
-
-const url = URL.createObjectURL(file)
-
-setPreview(url)
-
+setPreview(URL.createObjectURL(file))
 }
 
 }
@@ -90,18 +85,9 @@ foto:urlFoto
 }
 
 if(produtoEditando){
-
-await supabase
-.from("produtos")
-.update(dados)
-.eq("id",produtoEditando.id)
-
+await supabase.from("produtos").update(dados).eq("id",produtoEditando.id)
 }else{
-
-await supabase
-.from("produtos")
-.insert(dados)
-
+await supabase.from("produtos").insert(dados)
 }
 
 setNome("")
@@ -114,117 +100,87 @@ setPreview("")
 setProdutoEditando(null)
 
 carregarProdutos()
-
 }
 
 function editarProduto(p:any){
-
 setProdutoEditando(p)
-
 setNome(p.nome)
 setPreco(p.preco)
 setCusto(p.custo)
 setEstoque(p.estoque)
 setCores(p.cores)
-
 }
 
 async function excluirProduto(id:number){
-
-await supabase
-.from("produtos")
-.delete()
-.eq("id",id)
-
+await supabase.from("produtos").delete().eq("id",id)
 carregarProdutos()
+}
 
+/* ESTILOS */
+
+const inputStyle = {
+width:"100%",
+padding:"10px",
+borderRadius:"8px",
+border:"1px solid #D8C3A5",
+marginBottom:"10px"
+}
+
+const buttonStyle = {
+background:"#E8AEB7",
+color:"#fff",
+border:"none",
+padding:"12px",
+borderRadius:"8px",
+fontWeight:"bold",
+cursor:"pointer"
 }
 
 return(
 
-<div style={{padding:20,width:"100%"}}>
+<div>
 
-<h2>Cadastrar Produto</h2>
+<h1 style={{color:"#6B3E2E", marginBottom:"20px"}}>
+Cadastro de Produtos
+</h1>
 
-<input
-placeholder="Nome"
-value={nome}
-onChange={(e)=>setNome(e.target.value)}
-/>
+{/* FORMULÁRIO */}
+<div style={{
+background:"#fff",
+padding:"20px",
+borderRadius:"12px",
+boxShadow:"0 4px 10px rgba(0,0,0,0.05)",
+marginBottom:"30px"
+}}>
 
-<br/><br/>
+<input placeholder="Nome" value={nome} onChange={(e)=>setNome(e.target.value)} style={inputStyle} />
+<input placeholder="Preço" value={preco} onChange={(e)=>setPreco(e.target.value)} style={inputStyle} />
+<input placeholder="Custo" value={custo} onChange={(e)=>setCusto(e.target.value)} style={inputStyle} />
+<input placeholder="Estoque" value={estoque} onChange={(e)=>setEstoque(e.target.value)} style={inputStyle} />
+<input placeholder="Cores (ex: Preto,Bege)" value={cores} onChange={(e)=>setCores(e.target.value)} style={inputStyle} />
 
-<input
-placeholder="Preço"
-value={preco}
-onChange={(e)=>setPreco(e.target.value)}
-/>
-
-<br/><br/>
-
-<input
-placeholder="Custo"
-value={custo}
-onChange={(e)=>setCusto(e.target.value)}
-/>
-
-<br/><br/>
-
-<input
-placeholder="Estoque"
-value={estoque}
-onChange={(e)=>setEstoque(e.target.value)}
-/>
-
-<br/><br/>
-
-<input
-placeholder="Cores (ex: Preto,Bege)"
-value={cores}
-onChange={(e)=>setCores(e.target.value)}
-/>
-
-<br/><br/>
-
-<input
-type="file"
-onChange={selecionarFoto}
-/>
-
-<br/><br/>
+<input type="file" onChange={selecionarFoto} style={{marginBottom:"10px"}} />
 
 {preview && (
-
-<img
-src={preview}
-width="120"
-style={{borderRadius:8}}
-/>
-
+<img src={preview} style={{width:"120px", borderRadius:"8px", marginBottom:"10px"}} />
 )}
 
-<br/><br/>
-
-<button
-onClick={salvarProduto}
-style={{
-background:"#ec4899",
-color:"white",
-padding:"10px 20px",
-border:"none",
-borderRadius:6
-}}
->
-
-Salvar Produto
-
+<button onClick={salvarProduto} style={buttonStyle}>
+{produtoEditando ? "Atualizar Produto" : "Salvar Produto"}
 </button>
 
-<hr/>
+</div>
 
-<h2>Produtos cadastrados</h2>
+{/* LISTA */}
+<h2 style={{color:"#6B3E2E", marginBottom:"15px"}}>
+Produtos cadastrados
+</h2>
 
-<div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+<div style={{
+display:"grid",
+gridTemplateColumns:"repeat(auto-fill, minmax(220px, 1fr))",
+gap:"20px"
+}}>
 
 {produtos.map((p)=>{
 
@@ -233,40 +189,55 @@ const lucro = p.preco - p.custo
 return(
 
 <div key={p.id} style={{
-border:"1px solid #ddd",
-padding:15,
-width:220,
-borderRadius:8
+background:"#fff",
+borderRadius:"12px",
+padding:"15px",
+boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
 }}>
 
-<img src={p.foto} width="100%" />
+<img
+src={p.foto}
+style={{
+width:"100%",
+height:"150px",
+objectFit:"cover",
+borderRadius:"8px",
+marginBottom:"10px"
+}}
+/>
 
-<h3>{p.nome}</h3>
+<h3 style={{color:"#6B3E2E"}}>{p.nome}</h3>
 
 <p>Venda: R$ {p.preco}</p>
-
 <p>Custo: R$ {p.custo}</p>
 
-<p style={{color:"green"}}>Lucro: R$ {lucro}</p>
+<p style={{color:"green", fontWeight:"bold"}}>
+Lucro: R$ {lucro}
+</p>
 
 <p>Estoque: {p.estoque}</p>
-
 <p>Cores: {p.cores}</p>
 
-<br/>
+<div style={{display:"flex", gap:"5px", marginTop:"10px"}}>
 
-<button
-onClick={()=>editarProduto(p)}
-style={{marginRight:5}}
->
+<button onClick={()=>editarProduto(p)} style={{...buttonStyle, flex:1}}>
 Editar
 </button>
 
 <button
 onClick={()=>excluirProduto(p.id)}
+style={{
+flex:1,
+background:"#b91c1c",
+color:"#fff",
+border:"none",
+borderRadius:"8px"
+}}
 >
 Excluir
 </button>
+
+</div>
 
 </div>
 
@@ -279,5 +250,4 @@ Excluir
 </div>
 
 )
-
 }

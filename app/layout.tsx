@@ -11,11 +11,15 @@ children: React.ReactNode
 return (
 
 <html lang="pt-br">
-<body style={{margin:0,fontFamily:"Arial"}}>
+<body style={{
+margin:0,
+fontFamily:"Arial",
+background:"#F5E6DC"
+}}>
 
 <div style={{display:"flex",height:"100vh"}}>
 
-{/* MENU */}
+{/* MENU LATERAL */}
 <div style={{
 width:230,
 background:"#6B3E2E",
@@ -27,6 +31,7 @@ justifyContent:"space-between"
 }}>
 
 <div>
+
 <h2 style={{
 color:"#C9A227",
 marginBottom:30
@@ -34,7 +39,7 @@ marginBottom:30
 Milani
 </h2>
 
-<div style={{display:"flex",flexDirection:"column",gap:12}}>
+<div style={{display:"flex",flexDirection:"column",gap:10}}>
 
 <Link href="/" style={menuItem}>💰 Caixa</Link>
 <Link href="/produtos" style={menuItem}>📦 Produtos</Link>
@@ -42,6 +47,7 @@ Milani
 <Link href="/dashboard" style={menuItem}>📊 Dashboard</Link>
 
 </div>
+
 </div>
 
 <div style={{
@@ -53,21 +59,22 @@ Sistema Milani ©
 
 </div>
 
-{/* CONTEÚDO */}
+{/* CONTEÚDO PRINCIPAL */}
 <div style={{
 flex:1,
-background:"#F5E6DC",
-padding:"25px",
+padding:"15px",
 overflowY:"auto"
 }}>
 
-{/* CAIXA DE CONTEÚDO */}
+{/* CAIXA BRANCA PRINCIPAL */}
 <div style={{
 background:"#fff",
-borderRadius:12,
-padding:20,
+borderRadius:"12px",
+padding:"25px",
 minHeight:"100%",
-boxShadow:"0 4px 15px rgba(0,0,0,0.08)"
+boxShadow:"0 4px 15px rgba(0,0,0,0.08)",
+color:"#3E2C2C",
+width:"100%"
 }}>
 
 {children}
@@ -87,8 +94,8 @@ boxShadow:"0 4px 15px rgba(0,0,0,0.08)"
 const menuItem = {
 color:"#fff",
 textDecoration:"none",
-padding:"10px",
+padding:"10px 12px",
 borderRadius:"8px",
-transition:"0.3s",
-background:"transparent"
+background:"transparent",
+fontWeight:"500"
 }

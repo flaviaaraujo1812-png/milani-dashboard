@@ -16,7 +16,7 @@ type ItemCarrinho = Produto & {
   corSelecionada?: string
 }
 
-export default function Caixa() {
+export default function Caixa(){
 
 const [produtos,setProdutos] = useState<Produto[]>([])
 const [carrinho,setCarrinho] = useState<ItemCarrinho[]>([])
@@ -39,13 +39,7 @@ const {data} = await supabase.from("produtos").select("*")
 setProdutos(data || [])
 }
 
-// GERAR ID DO PEDIDO
-function gerarPedidoId(){
-return "PED-" + Date.now()
-}
-
 function adicionarProduto(produto:Produto){
-
 const existe = carrinho.find(p=>p.id === produto.id)
 
 if(existe){
@@ -57,7 +51,6 @@ p.id === produto.id
 }else{
 setCarrinho([...carrinho,{...produto, quantidade:1}])
 }
-
 }
 
 function removerProduto(produto:Produto){
@@ -91,42 +84,9 @@ setTaxaEntrega(0)
 setDesconto(0)
 }
 
-// COPIAR PEDIDO
-function copiarPedido(){
-
-let texto = `Pedido - Milani Bolsas
-
-Cliente: ${cliente}
-Telefone: ${telefone}
-Endereço: ${endereco}
-
-Itens:
-`
-
-carrinho.forEach(p=>{
-texto += `• ${p.nome} (${p.corSelecionada || "sem cor"}) x${p.quantidade} - R$ ${p.preco}\n`
-})
-
-texto += `
-Subtotal: R$ ${subtotal().toFixed(2)}
-Entrega: R$ ${taxaEntrega}
-Desconto: ${desconto}% (R$ ${valorDesconto().toFixed(2)})
-
-Total: R$ ${total().toFixed(2)}
-Pagamento: ${pagamento}
-`
-
-navigator.clipboard.writeText(texto)
-alert("Pedido copiado!")
-}
-
-// SALVAR VENDA AGRUPADA
 async function finalizarVenda(){
 
-const pedidoId = gerarPedidoId()
-
 await supabase.from("caixa").insert({
-pedido_id: pedidoId,
 cliente,
 pagamento,
 valor: total(),
@@ -134,64 +94,99 @@ itens: carrinho
 })
 
 for(const item of carrinho){
-
 await supabase
 .from("produtos")
-.update({
-estoque:item.estoque - item.quantidade
-})
+.update({estoque:item.estoque - item.quantidade})
 .eq("id",item.id)
-
 }
 
-alert("Venda salva com sucesso!")
+alert("Venda salva!")
 cancelarVenda()
+}
 
+const inputStyle = {
+width:"100%",
+padding:"10px",
+borderRadius:"8px",
+border:"1px solid #D8C3A5",
+marginBottom:"10px"
+}
+
+const buttonStyle = {
+background:"#E8AEB7",
+color:"#fff",
+border:"none",
+padding:"10px",
+borderRadius:"8px",
+cursor:"pointer",
+fontWeight:"bold"
 }
 
 return(
 
-<div style={{padding:20}}>
+<div>
 
-<h1>Caixa de vendas</h1>
+<h1 style={{color:"#6B3E2E", marginBottom:"20px"}}>
+Caixa de Vendas
+</h1>
 
-<div style={{display:"flex", gap:"40px"}}>
+<div style={{display:"flex", gap:"20px", flexWrap:"wrap"}}>
 
 {/* CLIENTE */}
-<div style={{width:"30%"}}>
+<div style={{
+flex:"1",
+minWidth:"280px",
+background:"#fff",
+padding:"20px",
+borderRadius:"12px",
+boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
+}}>
 
 <h3>Cliente</h3>
-<input value={cliente} onChange={e=>setCliente(e.target.value)} />
+<input style={inputStyle} value={cliente} onChange={e=>setCliente(e.target.value)} />
 
 <h3>Telefone</h3>
-<input value={telefone} onChange={e=>setTelefone(e.target.value)} />
+<input style={inputStyle} value={telefone} onChange={e=>setTelefone(e.target.value)} />
 
 <h3>Endereço</h3>
-<input value={endereco} onChange={e=>setEndereco(e.target.value)} />
+<input style={inputStyle} value={endereco} onChange={e=>setEndereco(e.target.value)} />
 
 <h3>Pagamento</h3>
-<select onChange={e=>setPagamento(e.target.value)}>
+<select style={inputStyle} onChange={e=>setPagamento(e.target.value)}>
 <option>Pix</option>
 <option>Dinheiro</option>
 <option>Cartão</option>
 </select>
 
-<h3>Taxa de entrega</h3>
-<input type="number" value={taxaEntrega} onChange={e=>setTaxaEntrega(Number(e.target.value))} />
+<h3>Entrega</h3>
+<input style={inputStyle} type="number" onChange={e=>setTaxaEntrega(Number(e.target.value))} />
 
 <h3>Desconto (%)</h3>
-<input type="number" value={desconto} onChange={e=>setDesconto(Number(e.target.value))} />
+<input style={inputStyle} type="number" onChange={e=>setDesconto(Number(e.target.value))} />
 
 </div>
 
-{/* PRODUTOS */}
-<div style={{width:"70%"}}>
+{/* PRODUTOS + CARRINHO */}
+<div style={{
+flex:"2",
+minWidth:"320px",
+background:"#fff",
+padding:"20px",
+borderRadius:"12px",
+boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
+}}>
 
-<h3>Buscar produto</h3>
-<input onChange={e=>setBusca(e.target.value)} />
+<input
+placeholder="Buscar produto"
+style={inputStyle}
+onChange={e=>setBusca(e.target.value)}
+/>
 
-<h3>Produtos</h3>
-
+<div style={{
+maxHeight:"250px",
+overflowY:"auto",
+marginBottom:"15px"
+}}>
 {produtos
 .filter(p=>p.nome.toLowerCase().includes(busca.toLowerCase()))
 .map(p=>{
@@ -199,16 +194,31 @@ return(
 const cores = p.cores ? p.cores.split(",") : []
 
 return(
-<div key={p.id}>
+<div key={p.id} style={{
+display:"flex",
+justifyContent:"space-between",
+alignItems:"center",
+marginBottom:"10px"
+}}>
 
+<div>
 {p.nome} - R$ {p.preco}
+</div>
 
-<button onClick={()=>adicionarProduto(p)}>
-Adicionar
+<div>
+
+<button
+onClick={()=>adicionarProduto(p)}
+style={{...buttonStyle, padding:"5px 10px", marginRight:"5px"}}
+>
++
 </button>
 
 {cores.length > 0 && (
-<select onChange={(e)=>alterarCor(p.id,e.target.value)}>
+<select
+style={{borderRadius:"6px", padding:"5px"}}
+onChange={(e)=>alterarCor(p.id,e.target.value)}
+>
 <option>Cor</option>
 {cores.map((c,i)=>(
 <option key={i}>{c}</option>
@@ -217,35 +227,57 @@ Adicionar
 )}
 
 </div>
+
+</div>
 )
 })}
+</div>
+
+<hr/>
 
 <h3>Carrinho</h3>
 
 {carrinho.map(p=>(
-<div key={p.id}>
+<div key={p.id} style={{
+display:"flex",
+justifyContent:"space-between",
+marginBottom:"8px"
+}}>
+<div>
 {p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
-<button onClick={()=>removerProduto(p)}>X</button>
+</div>
+
+<button
+onClick={()=>removerProduto(p)}
+style={{background:"red", color:"#fff", border:"none", borderRadius:"6px"}}
+>
+X
+</button>
+
 </div>
 ))}
 
+<hr/>
+
 <h3>Subtotal: R$ {subtotal().toFixed(2)}</h3>
 <p>Entrega: R$ {taxaEntrega}</p>
-<p>Desconto: {desconto}% (R$ {valorDesconto().toFixed(2)})</p>
+<p>Desconto: {desconto}%</p>
 
-<h2>Total: R$ {total().toFixed(2)}</h2>
+<h2 style={{color:"#C9A227"}}>
+Total: R$ {total().toFixed(2)}
+</h2>
 
-<button onClick={finalizarVenda}>
+<div style={{display:"flex", gap:"10px"}}>
+
+<button onClick={finalizarVenda} style={{...buttonStyle, flex:1}}>
 Finalizar venda
 </button>
 
-<button onClick={copiarPedido}>
-Copiar pedido
+<button onClick={cancelarVenda} style={{flex:1}}>
+Cancelar
 </button>
 
-<button onClick={cancelarVenda}>
-Cancelar venda
-</button>
+</div>
 
 </div>
 
