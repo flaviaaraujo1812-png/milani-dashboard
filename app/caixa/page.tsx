@@ -38,20 +38,49 @@ const {data} = await supabase.from("produtos").select("*")
 setProdutos(data || [])
 }
 
+/* 🔍 BUSCA INTELIGENTE */
+function buscarProduto(valor:string){
+
+setBusca(valor)
+
+if(valor.length < 2) return
+
+const encontrado = produtos.find(p =>
+p.nome.toLowerCase().includes(valor.toLowerCase()) ||
+String(p.id) === valor
+)
+
+if(encontrado){
+add(encontrado)
+setBusca("")
+}
+
+}
+
+/* 🛒 CARRINHO */
 function add(prod:Produto){
 const existe = carrinho.find(p=>p.id===prod.id)
 
 if(existe){
-setCarrinho(carrinho.map(p=>p.id===prod.id ? {...p,quantidade:p.quantidade+1}:p))
+setCarrinho(carrinho.map(p=>
+p.id===prod.id ? {...p,quantidade:p.quantidade+1}:p
+))
 }else{
 setCarrinho([...carrinho,{...prod,quantidade:1}])
 }
+}
+
+function alterarCor(id:number, cor:string){
+setCarrinho(carrinho.map(p=>
+p.id === id ? {...p, corSelecionada:cor} : p
+))
 }
 
 function remove(id:number){
 setCarrinho(carrinho.filter(p=>p.id!==id))
 }
 
+/* 💰 CÁLCULOS */
 function subtotal(){
 return carrinho.reduce((t,p)=> t + p.preco*p.quantidade,0)
 }
@@ -64,6 +93,7 @@ function total(){
 return subtotal() - valorDesconto() + taxa
 }
 
+/* 🔄 AÇÕES */
 function cancelar(){
 setCarrinho([])
 setCliente("")
@@ -75,13 +105,11 @@ setDesconto(0)
 function mensagem(){
 
 let msg = `🛍️ *Pedido - Milani*%0A%0A`
-
 msg += `👤 ${cliente}%0A📞 ${telefone}%0A%0A`
-
 msg += `🛒 *Itens:*%0A`
 
 carrinho.forEach(p=>{
-msg += `- ${p.nome} x${p.quantidade} = R$ ${(p.preco*p.quantidade).toFixed(2)}%0A`
+msg += `- ${p.nome} (${p.corSelecionada || "sem cor"}) x${p.quantidade} = R$ ${(p.preco*p.quantidade).toFixed(2)}%0A`
 })
 
 msg += `%0A💰 Total: R$ ${total().toFixed(2)}%0A`
@@ -89,7 +117,6 @@ msg += `💳 ${pagamento}%0A`
 msg += `%0A✨ Obrigado pela preferência!`
 
 const numero = telefone.replace(/\D/g,"")
-
 window.open(`https://wa.me/55${numero}?text=${msg}`,"_blank")
 }
 
@@ -114,12 +141,13 @@ await supabase
 mensagem()
 cancelar()
 alert("Venda salva!")
-
 }
+
+/* 🎨 ESTILO */
 
 const input = {
 width:"100%",
-padding:"10px",
+padding:"12px",
 borderRadius:"8px",
 border:"1px solid #D8C3A5",
 marginBottom:"10px"
@@ -131,8 +159,11 @@ color:"#fff",
 border:"none",
 padding:"10px",
 borderRadius:"8px",
-cursor:"pointer"
+cursor:"pointer",
+fontWeight:"bold"
 }
+
+/* 🖥️ TELA */
 
 return(
 
@@ -151,6 +182,7 @@ borderRadius:"12px"
 }}>
 
 <h3>Cliente</h3>
+
 <input style={input} placeholder="Nome" value={cliente} onChange={e=>setCliente(e.target.value)} />
 
 <input style={input} placeholder="Telefone" value={telefone} onChange={e=>setTelefone(e.target.value)} />
@@ -175,37 +207,59 @@ padding:"20px",
 borderRadius:"12px"
 }}>
 
-<input placeholder="Buscar" style={input} onChange={e=>setBusca(e.target.value)} />
-
-<div style={{maxHeight:200,overflowY:"auto"}}>
-
-{produtos
-.filter(p=>p.nome.toLowerCase().includes(busca.toLowerCase()))
-.map(p=>(
-<div key={p.id} style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}>
-
-<span>{p.nome} - R$ {p.preco}</span>
-
-<button style={btn} onClick={()=>add(p)}>+</button>
-
-</div>
-))}
-
-</div>
+{/* 🔍 BUSCA */}
+<input
+placeholder="Digite código ou nome do produto"
+style={input}
+value={busca}
+onChange={(e)=>buscarProduto(e.target.value)}
+onKeyDown={(e)=>{
+if(e.key === "Enter"){
+buscarProduto(busca)
+}
+}}
+/>
 
 <hr/>
 
 <h3>Carrinho</h3>
 
-{carrinho.map(p=>(
-<div key={p.id} style={{display:"flex",justifyContent:"space-between"}}>
+{carrinho.map(p=>{
 
-<span>{p.nome} x{p.quantidade}</span>
+const cores = p.cores ? p.cores.split(",") : []
+
+return(
+
+<div key={p.id} style={{
+display:"flex",
+justifyContent:"space-between",
+marginBottom:"8px"
+}}>
+
+<div>
+{p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
+</div>
+
+<div style={{display:"flex",gap:"5px"}}>
+
+{cores.length > 0 && (
+<select onChange={(e)=>alterarCor(p.id,e.target.value)}>
+<option>Cor</option>
+{cores.map((c,i)=>(
+<option key={i}>{c}</option>
+))}
+</select>
+)}
 
 <button onClick={()=>remove(p.id)}>X</button>
 
 </div>
-))}
+
+</div>
+
+)
+
+})}
 
 <hr/>
 
@@ -220,7 +274,7 @@ Total: R$ {total().toFixed(2)}
 <div style={{display:"flex",gap:"10px"}}>
 
 <button style={btn} onClick={finalizar}>
-Finalizar
+Finalizar venda
 </button>
 
 <button onClick={cancelar}>
