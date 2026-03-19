@@ -1,12 +1,19 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export default function RootLayout({
 children,
 }:{
 children: React.ReactNode
 }) {
+
+const pathname = usePathname()
+
+function active(path:string){
+return pathname === path
+}
 
 return (
 
@@ -19,12 +26,12 @@ background:"#F5E6DC"
 
 <div style={{display:"flex",height:"100vh"}}>
 
-{/* MENU LATERAL */}
+{/* MENU */}
 <div style={{
-width:230,
+width:170,
 background:"#6B3E2E",
 color:"#fff",
-padding:"20px 15px",
+padding:"15px 10px",
 display:"flex",
 flexDirection:"column",
 justifyContent:"space-between"
@@ -34,47 +41,61 @@ justifyContent:"space-between"
 
 <h2 style={{
 color:"#C9A227",
-marginBottom:30
+marginBottom:20,
+fontSize:"18px"
 }}>
 Milani
 </h2>
 
-<div style={{display:"flex",flexDirection:"column",gap:10}}>
+<div style={{display:"flex",flexDirection:"column",gap:6}}>
 
-<Link href="/" style={menuItem}>💰 Caixa</Link>
-<Link href="/produtos" style={menuItem}>📦 Produtos</Link>
-<Link href="/relatorio" style={menuItem}>📑 Relatório</Link>
-<Link href="/dashboard" style={menuItem}>📊 Dashboard</Link>
+<Link href="/" style={menuItem(active("/"))}>
+<span style={indicator(active("/"))}></span>
+💰 Caixa
+</Link>
+
+<Link href="/produtos" style={menuItem(active("/produtos"))}>
+<span style={indicator(active("/produtos"))}></span>
+📦 Produtos
+</Link>
+
+<Link href="/relatorio" style={menuItem(active("/relatorio"))}>
+<span style={indicator(active("/relatorio"))}></span>
+📑 Relatório
+</Link>
+
+<Link href="/dashboard" style={menuItem(active("/dashboard"))}>
+<span style={indicator(active("/dashboard"))}></span>
+📊 Dashboard
+</Link>
 
 </div>
 
 </div>
 
 <div style={{
-fontSize:12,
-opacity:0.7
+fontSize:11,
+opacity:0.6
 }}>
 Sistema Milani ©
 </div>
 
 </div>
 
-{/* CONTEÚDO PRINCIPAL */}
+{/* CONTEÚDO */}
 <div style={{
 flex:1,
 padding:"15px",
 overflowY:"auto"
 }}>
 
-{/* CAIXA BRANCA PRINCIPAL */}
 <div style={{
 background:"#fff",
 borderRadius:"12px",
 padding:"25px",
 minHeight:"100%",
 boxShadow:"0 4px 15px rgba(0,0,0,0.08)",
-color:"#3E2C2C",
-width:"100%"
+color:"#3E2C2C"
 }}>
 
 {children}
@@ -91,11 +112,28 @@ width:"100%"
 )
 }
 
-const menuItem = {
-color:"#fff",
+/* ITEM MENU */
+function menuItem(active:boolean){
+return {
+display:"flex",
+alignItems:"center",
+gap:"8px",
+color: active ? "#C9A227" : "#fff",
 textDecoration:"none",
-padding:"10px 12px",
-borderRadius:"8px",
-background:"transparent",
-fontWeight:"500"
+padding:"8px 10px",
+borderRadius:"6px",
+fontSize:"14px",
+fontWeight:"500",
+background: active ? "rgba(255,255,255,0.05)" : "transparent"
+}
+}
+
+/* INDICADOR */
+function indicator(active:boolean){
+return {
+width:"6px",
+height:"6px",
+borderRadius:"50%",
+background: active ? "#C9A227" : "transparent"
+}
 }
