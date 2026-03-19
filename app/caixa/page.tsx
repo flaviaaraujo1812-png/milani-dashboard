@@ -9,19 +9,30 @@ type Produto = {
   preco:number
   estoque:number
   cores?:string
+  foto?:string
 }
 
-type Item = Produto & {
+type Item = {
+  id:number
+  nome:string
+  preco:number
+  estoque:number
   quantidade:number
   corSelecionada?:string
+  foto?:string
 }
 
 export default function Caixa(){
 
 const [produtos,setProdutos] = useState<Produto[]>([])
-const [carrinho,setCarrinho] = useState<Item[]>([])
+const [resultado,setResultado] = useState<Produto | null>(null)
 
 const [busca,setBusca] = useState("")
+const [cor,setCor] = useState("")
+const [quantidade,setQuantidade] = useState(1)
+
+const [carrinho,setCarrinho] = useState<Item[]>([])
+
 const [cliente,setCliente] = useState("")
 const [telefone,setTelefone] = useState("")
 const [pagamento,setPagamento] = useState("Pix")
@@ -38,49 +49,63 @@ const {data} = await supabase.from("produtos").select("*")
 setProdutos(data || [])
 }
 
-/* 🔍 BUSCA INTELIGENTE */
 function buscarProduto(valor:string){
-
 setBusca(valor)
 
-if(valor.length < 2) return
+if(valor.length < 2){
+setResultado(null)
+return
+}
 
 const encontrado = produtos.find(p =>
-p.nome.toLowerCase().includes(valor.toLowerCase()) ||
-String(p.id) === valor
+p.nome.toLowerCase().includes(valor.toLowerCase())
 )
 
-if(encontrado){
-add(encontrado)
-setBusca("")
+setResultado(encontrado || null)
 }
 
-}
+/* ✅ ADICIONAR COM COR + QUANTIDADE */
+function adicionar(){
 
-/* 🛒 CARRINHO */
-function add(prod:Produto){
-const existe = carrinho.find(p=>p.id===prod.id)
+if(!resultado) return
+
+const existe = carrinho.find(
+p => p.id === resultado.id && p.corSelecionada === cor
+)
 
 if(existe){
-setCarrinho(carrinho.map(p=>
-p.id===prod.id ? {...p,quantidade:p.quantidade+1}:p
+setCarrinho(carrinho.map(p =>
+p.id === resultado.id && p.corSelecionada === cor
+? {...p, quantidade: p.quantidade + quantidade}
+: p
 ))
 }else{
-setCarrinho([...carrinho,{...prod,quantidade:1}])
+setCarrinho([
+...carrinho,
+{
+id: resultado.id,
+nome: resultado.nome,
+preco: resultado.preco,
+estoque: resultado.estoque,
+quantidade: quantidade,
+corSelecionada: cor,
+foto: resultado.foto
 }
+])
 }
 
-function alterarCor(id:number, cor:string){
-setCarrinho(carrinho.map(p=>
-p.id === id ? {...p, corSelecionada:cor} : p
-))
+/* reset */
+setResultado(null)
+setBusca("")
+setCor("")
+setQuantidade(1)
 }
 
-function remove(id:number){
+function remover(id:number){
 setCarrinho(carrinho.filter(p=>p.id!==id))
 }
 
-/* 💰 CÁLCULOS */
+/* VALORES */
 function subtotal(){
 return carrinho.reduce((t,p)=> t + p.preco*p.quantidade,0)
 }
@@ -93,23 +118,17 @@ function total(){
 return subtotal() - valorDesconto() + taxa
 }
 
-/* 🔄 AÇÕES */
-function cancelar(){
-setCarrinho([])
-setCliente("")
-setTelefone("")
-setTaxa(0)
-setDesconto(0)
-}
-
+/* WHATSAPP */
 function mensagem(){
 
 let msg = `🛍️ *Pedido - Milani*%0A%0A`
+
 msg += `👤 ${cliente}%0A📞 ${telefone}%0A%0A`
+
 msg += `🛒 *Itens:*%0A`
 
 carrinho.forEach(p=>{
-msg += `- ${p.nome} (${p.corSelecionada || "sem cor"}) x${p.quantidade} = R$ ${(p.preco*p.quantidade).toFixed(2)}%0A`
+msg += `- ${p.nome} (${p.corSelecionada || "-"}) x${p.quantidade} = R$ ${(p.preco*p.quantidade).toFixed(2)}%0A`
 })
 
 msg += `%0A💰 Total: R$ ${total().toFixed(2)}%0A`
@@ -117,6 +136,7 @@ msg += `💳 ${pagamento}%0A`
 msg += `%0A✨ Obrigado pela preferência!`
 
 const numero = telefone.replace(/\D/g,"")
+
 window.open(`https://wa.me/55${numero}?text=${msg}`,"_blank")
 }
 
@@ -139,15 +159,14 @@ await supabase
 }
 
 mensagem()
-cancelar()
+setCarrinho([])
 alert("Venda salva!")
 }
 
-/* 🎨 ESTILO */
-
+/* ESTILO */
 const input = {
 width:"100%",
-padding:"12px",
+padding:"10px",
 borderRadius:"8px",
 border:"1px solid #D8C3A5",
 marginBottom:"10px"
@@ -159,11 +178,8 @@ color:"#fff",
 border:"none",
 padding:"10px",
 borderRadius:"8px",
-cursor:"pointer",
-fontWeight:"bold"
+cursor:"pointer"
 }
-
-/* 🖥️ TELA */
 
 return(
 
@@ -182,7 +198,6 @@ borderRadius:"12px"
 }}>
 
 <h3>Cliente</h3>
-
 <input style={input} placeholder="Nome" value={cliente} onChange={e=>setCliente(e.target.value)} />
 
 <input style={input} placeholder="Telefone" value={telefone} onChange={e=>setTelefone(e.target.value)} />
@@ -207,59 +222,80 @@ padding:"20px",
 borderRadius:"12px"
 }}>
 
-{/* 🔍 BUSCA */}
 <input
-placeholder="Digite código ou nome do produto"
+placeholder="Buscar código ou nome"
 style={input}
 value={busca}
-onChange={(e)=>buscarProduto(e.target.value)}
-onKeyDown={(e)=>{
-if(e.key === "Enter"){
-buscarProduto(busca)
-}
-}}
+onChange={e=>buscarProduto(e.target.value)}
 />
 
-<hr/>
-
-<h3>Carrinho</h3>
-
-{carrinho.map(p=>{
-
-const cores = p.cores ? p.cores.split(",") : []
-
-return(
-
-<div key={p.id} style={{
-display:"flex",
-justifyContent:"space-between",
-marginBottom:"8px"
+{/* RESULTADO */}
+{resultado && (
+<div style={{
+border:"1px solid #ddd",
+padding:10,
+borderRadius:8,
+marginBottom:10
 }}>
 
-<div>
-{p.nome} ({p.corSelecionada || "sem cor"}) x{p.quantidade}
-</div>
+{resultado.foto && (
+<img src={resultado.foto} width="80" style={{borderRadius:8}} />
+)}
 
-<div style={{display:"flex",gap:"5px"}}>
+<p>{resultado.nome}</p>
+<p>R$ {resultado.preco}</p>
 
-{cores.length > 0 && (
-<select onChange={(e)=>alterarCor(p.id,e.target.value)}>
-<option>Cor</option>
-{cores.map((c,i)=>(
+{/* COR */}
+{resultado.cores && (
+<select style={input} onChange={e=>setCor(e.target.value)}>
+<option>Escolher cor</option>
+{resultado.cores.split(",").map((c,i)=>(
 <option key={i}>{c}</option>
 ))}
 </select>
 )}
 
-<button onClick={()=>remove(p.id)}>X</button>
+{/* QUANTIDADE */}
+<input
+type="number"
+style={input}
+value={quantidade}
+onChange={e=>setQuantidade(Number(e.target.value))}
+/>
+
+<button style={btn} onClick={adicionar}>
+Adicionar ao carrinho
+</button>
 
 </div>
+)}
 
+<hr/>
+
+<h3>Carrinho</h3>
+
+{carrinho.map(p=>(
+<div key={p.id} style={{
+display:"flex",
+gap:10,
+marginBottom:10,
+alignItems:"center"
+}}>
+
+{p.foto && (
+<img src={p.foto} width="50" style={{borderRadius:6}} />
+)}
+
+<div style={{flex:1}}>
+<p>{p.nome}</p>
+<p>{p.corSelecionada || "-"}</p>
+<p>x{p.quantidade}</p>
 </div>
 
-)
+<button onClick={()=>remover(p.id)}>X</button>
 
-})}
+</div>
+))}
 
 <hr/>
 
@@ -271,17 +307,9 @@ marginBottom:"8px"
 Total: R$ {total().toFixed(2)}
 </h2>
 
-<div style={{display:"flex",gap:"10px"}}>
-
 <button style={btn} onClick={finalizar}>
 Finalizar venda
 </button>
-
-<button onClick={cancelar}>
-Cancelar
-</button>
-
-</div>
 
 </div>
 
