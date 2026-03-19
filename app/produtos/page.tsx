@@ -69,6 +69,11 @@ return data.publicUrl
 
 async function salvarProduto(){
 
+if(!nome || !preco || !custo){
+alert("Preencha nome, preço e custo")
+return
+}
+
 let urlFoto = ""
 
 if(foto){
@@ -77,19 +82,25 @@ urlFoto = await uploadImagem()
 
 const dados = {
 nome,
-preco:Number(preco),
-custo:Number(custo),
-estoque:Number(estoque),
+preco: Number(preco || 0),
+custo: Number(custo || 0),
+estoque: Number(estoque || 0),
 cores,
 foto:urlFoto
 }
 
 if(produtoEditando){
-await supabase.from("produtos").update(dados).eq("id",produtoEditando.id)
+await supabase
+.from("produtos")
+.update(dados)
+.eq("id",produtoEditando.id)
 }else{
-await supabase.from("produtos").insert(dados)
+await supabase
+.from("produtos")
+.insert(dados)
 }
 
+/* RESET */
 setNome("")
 setPreco("")
 setCusto("")
@@ -103,20 +114,30 @@ carregarProdutos()
 }
 
 function editarProduto(p:any){
+
 setProdutoEditando(p)
+
 setNome(p.nome)
-setPreco(p.preco)
-setCusto(p.custo)
-setEstoque(p.estoque)
-setCores(p.cores)
+setPreco(String(p.preco))
+setCusto(String(p.custo))
+setEstoque(String(p.estoque))
+setCores(p.cores || "")
+setPreview(p.foto || "")
+
 }
 
 async function excluirProduto(id:number){
-await supabase.from("produtos").delete().eq("id",id)
+
+await supabase
+.from("produtos")
+.delete()
+.eq("id",id)
+
 carregarProdutos()
+
 }
 
-/* ESTILOS */
+/* ESTILO */
 
 const inputStyle = {
 width:"100%",
@@ -136,6 +157,8 @@ fontWeight:"bold",
 cursor:"pointer"
 }
 
+/* TELA */
+
 return(
 
 <div>
@@ -153,16 +176,59 @@ boxShadow:"0 4px 10px rgba(0,0,0,0.05)",
 marginBottom:"30px"
 }}>
 
-<input placeholder="Nome" value={nome} onChange={(e)=>setNome(e.target.value)} style={inputStyle} />
-<input placeholder="Preço" value={preco} onChange={(e)=>setPreco(e.target.value)} style={inputStyle} />
-<input placeholder="Custo" value={custo} onChange={(e)=>setCusto(e.target.value)} style={inputStyle} />
-<input placeholder="Estoque" value={estoque} onChange={(e)=>setEstoque(e.target.value)} style={inputStyle} />
-<input placeholder="Cores (ex: Preto,Bege)" value={cores} onChange={(e)=>setCores(e.target.value)} style={inputStyle} />
+<input
+placeholder="Nome"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+style={inputStyle}
+/>
 
-<input type="file" onChange={selecionarFoto} style={{marginBottom:"10px"}} />
+<input
+type="number"
+placeholder="Preço"
+value={preco}
+onChange={(e)=>setPreco(e.target.value)}
+style={inputStyle}
+/>
+
+<input
+type="number"
+placeholder="Custo"
+value={custo}
+onChange={(e)=>setCusto(e.target.value)}
+style={inputStyle}
+/>
+
+<input
+type="number"
+placeholder="Estoque"
+value={estoque}
+onChange={(e)=>setEstoque(e.target.value)}
+style={inputStyle}
+/>
+
+<input
+placeholder="Cores (ex: Preto,Bege)"
+value={cores}
+onChange={(e)=>setCores(e.target.value)}
+style={inputStyle}
+/>
+
+<input
+type="file"
+onChange={selecionarFoto}
+style={{marginBottom:"10px"}}
+/>
 
 {preview && (
-<img src={preview} style={{width:"120px", borderRadius:"8px", marginBottom:"10px"}} />
+<img
+src={preview}
+style={{
+width:"120px",
+borderRadius:"8px",
+marginBottom:"10px"
+}}
+/>
 )}
 
 <button onClick={salvarProduto} style={buttonStyle}>
@@ -184,7 +250,7 @@ gap:"20px"
 
 {produtos.map((p)=>{
 
-const lucro = p.preco - p.custo
+const lucro = Number(p.preco) - Number(p.custo)
 
 return(
 
@@ -196,7 +262,7 @@ boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
 }}>
 
 <img
-src={p.foto}
+src={p.foto || "https://via.placeholder.com/150"}
 style={{
 width:"100%",
 height:"150px",
@@ -208,11 +274,14 @@ marginBottom:"10px"
 
 <h3 style={{color:"#6B3E2E"}}>{p.nome}</h3>
 
-<p>Venda: R$ {p.preco}</p>
-<p>Custo: R$ {p.custo}</p>
+<p>Venda: R$ {Number(p.preco).toFixed(2)}</p>
+<p>Custo: R$ {Number(p.custo).toFixed(2)}</p>
 
-<p style={{color:"green", fontWeight:"bold"}}>
-Lucro: R$ {lucro}
+<p style={{
+color: lucro >= 0 ? "green" : "red",
+fontWeight:"bold"
+}}>
+Lucro: R$ {lucro.toFixed(2)}
 </p>
 
 <p>Estoque: {p.estoque}</p>
@@ -220,7 +289,10 @@ Lucro: R$ {lucro}
 
 <div style={{display:"flex", gap:"5px", marginTop:"10px"}}>
 
-<button onClick={()=>editarProduto(p)} style={{...buttonStyle, flex:1}}>
+<button
+onClick={()=>editarProduto(p)}
+style={{...buttonStyle, flex:1}}
+>
 Editar
 </button>
 
