@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import Sidebar from "../components/sidebar"
 
 type Lancamento = {
   id?: number
@@ -153,40 +154,7 @@ export default function Caixa() {
       background: "#f5f5f5"
     }}>
 
-      {/* MENU */}
-
-      <div style={{
-        width: "240px",
-        background: "#111827",
-        color: "#fff",
-        padding: "25px"
-      }}>
-
-        <h2 style={{
-  color: "#FFD700",
-  marginBottom: "40px",
-  fontSize: "24px",
-  lineHeight: "30px",
-  fontWeight: "bold"
-}}>
-  PLANETA DOS
-  <br />
-  RETROVISORES
-</h2>
-
-<a href="/dashboard" style={menu}>
-  🏠 Dashboard
-</a>
-
-<a href="/caixa" style={menu}>
-  💰 Caixa Diário
-</a>
-
-<a href="/relatorio" style={menu}>
-  📊 Relatórios
-</a>
-
-      </div>
+      <Sidebar />
 
       {/* CONTEÚDO */}
 
