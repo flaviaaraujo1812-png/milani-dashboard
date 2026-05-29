@@ -314,7 +314,7 @@ function Card({
 
       <h2 style={{
         color: cor,
-        fontSize: "25px"
+        fontSize: "18px"
       }}>
         {valor}
       </h2>
