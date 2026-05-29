@@ -89,19 +89,19 @@ export default function Fechamento() {
 
       <div style={{
         flex: 1,
-        padding: "20px"
+        padding: "25px"
       }}>
 
         <h1 style={{
-          fontSize: "42px",
+          fontSize: "32px",
           color: "#111827",
-          marginBottom: "10px",
+          marginBottom: "6px",
           display: "flex",
           alignItems: "center",
-          gap: "12px"
+          gap: "8px"
         }}>
           <span style={{
-            fontSize: "28px"
+            fontSize: "24px"
           }}>
             🤝
           </span>
@@ -111,16 +111,16 @@ export default function Fechamento() {
 
         <p style={{
           color: "#6b7280",
-          marginBottom: "30px"
+          marginBottom: "25px"
         }}>
           Resumo financeiro geral e divisão entre sócios
         </p>
 
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-          gap: "20px",
-          marginBottom: "25px"
+          gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+          gap: "16px",
+          marginBottom: "18px"
         }}>
 
           <Card
@@ -158,15 +158,14 @@ export default function Fechamento() {
         <div style={{
           background: "#eef4ff",
           border: "1px solid #c7d2fe",
-          borderRadius: "16px",
-          padding: "20px",
-          marginBottom: "25px"
+          borderRadius: "12px",
+          padding: "16px",
+          marginBottom: "20px"
         }}>
 
           <h3 style={{
             marginBottom: "8px",
             color: "#1e1b4b"
-
           }}>
             📘 Regras de Divisão
           </h3>
@@ -184,18 +183,18 @@ export default function Fechamento() {
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "10px"
+          gap: "16px"
         }}>
 
           <div style={box}>
 
             <h2 style={{
               color: "#111827",
-              marginBottom: "12px",
-              fontSize: "22px",
+              marginBottom: "16px",
+              fontSize: "20px",
               fontWeight: "bold",
               borderBottom: "2px solid #16a34a",
-              paddingBottom: "6px"
+              paddingBottom: "8px"
             }}>
               Alexandre • 70%
             </h2>
@@ -209,11 +208,11 @@ export default function Fechamento() {
             <p>Retiradas: {moeda(retiradaAlexandre)}</p>
 
             <hr style={{
-              margin: "20px 0"
+              margin: "16px 0"
             }} />
 
             <h1 style={{
-              fontSize: "42px",
+              fontSize: "35px",
               color:
                 alexandreFinal >= 0
                   ? "#16a34a"
@@ -224,7 +223,7 @@ export default function Fechamento() {
 
             <p style={{
               fontWeight: "bold",
-              marginTop: "10px"
+              marginTop: "8px"
             }}>
               {alexandreFinal >= 0
                 ? "✅ Valor a Receber"
@@ -237,11 +236,11 @@ export default function Fechamento() {
 
             <h2 style={{
               color: "#111827",
-              marginBottom: "12px",
-              fontSize: "22px",
+              marginBottom: "16px",
+              fontSize: "20px",
               fontWeight: "bold",
               borderBottom: "2px solid #2563eb",
-              paddingBottom: "6px"
+              paddingBottom: "8px"
             }}>
               Anderson • 30%
             </h2>
@@ -255,11 +254,11 @@ export default function Fechamento() {
             <p>Retiradas: {moeda(retiradaAnderson)}</p>
 
             <hr style={{
-              margin: "20px 0"
+              margin: "16px 0"
             }} />
 
             <h1 style={{
-              fontSize: "30px",
+              fontSize: "35px",
               color:
                 andersonFinal >= 0
                   ? "#16a34a"
@@ -270,7 +269,7 @@ export default function Fechamento() {
 
             <p style={{
               fontWeight: "bold",
-              marginTop: "10px"
+              marginTop: "8px"
             }}>
               {andersonFinal >= 0
                 ? "✅ Valor a Receber"
@@ -303,19 +302,19 @@ function Card({
       background: "#fff",
       padding: "25px",
       borderRadius: "16px",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+      boxShadow: "0 3px 15px rgba(0,0,0,0.04)"
     }}>
 
       <p style={{
         color: "#6b7280",
-        marginBottom: "10px"
+        marginBottom: "8px"
       }}>
         {titulo}
       </p>
 
       <h2 style={{
         color: cor,
-        fontSize: "30px"
+        fontSize: "25px"
       }}>
         {valor}
       </h2>
@@ -326,8 +325,8 @@ function Card({
 
 const box = {
   background: "#fff",
-  padding: "20px",
-  borderRadius: "14px",
+  padding: "30px",
+  borderRadius: "20px",
   border: "1px solid #e5e7eb",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+  boxShadow: "0 8px 25px rgba(0,0,0,0.08)"
 }
