@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase"
 import Sidebar from "../components/sidebar"
 
 export default function Fechamento() {
-    
+
   const [dados, setDados] = useState<any[]>([])
 
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function Fechamento() {
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "20px"
+          gap: "10px"
         }}>
 
           <div style={box}>
