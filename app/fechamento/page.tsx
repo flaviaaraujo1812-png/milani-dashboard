@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase"
 import Sidebar from "../components/sidebar"
 
 export default function Fechamento() {
-
+    
   const [dados, setDados] = useState<any[]>([])
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function Fechamento() {
 
       <div style={{
         flex: 1,
-        padding: "35px"
+        padding: "20px"
       }}>
 
         <h1 style={{
@@ -164,8 +164,9 @@ export default function Fechamento() {
         }}>
 
           <h3 style={{
-            marginBottom: "10px",
+            marginBottom: "8px",
             color: "#1e1b4b"
+
           }}>
             📘 Regras de Divisão
           </h3>
@@ -190,11 +191,11 @@ export default function Fechamento() {
 
             <h2 style={{
               color: "#111827",
-              marginBottom: "20px",
-              fontSize: "28px",
+              marginBottom: "12px",
+              fontSize: "22px",
               fontWeight: "bold",
-              borderBottom: "3px solid #16a34a",
-              paddingBottom: "10px"
+              borderBottom: "2px solid #16a34a",
+              paddingBottom: "6px"
             }}>
               Alexandre • 70%
             </h2>
@@ -236,11 +237,11 @@ export default function Fechamento() {
 
             <h2 style={{
               color: "#111827",
-              marginBottom: "20px",
-              fontSize: "28px",
+              marginBottom: "12px",
+              fontSize: "22px",
               fontWeight: "bold",
-              borderBottom: "3px solid #2563eb",
-              paddingBottom: "10px"
+              borderBottom: "2px solid #2563eb",
+              paddingBottom: "6px"
             }}>
               Anderson • 30%
             </h2>
@@ -258,7 +259,7 @@ export default function Fechamento() {
             }} />
 
             <h1 style={{
-              fontSize: "42px",
+              fontSize: "30px",
               color:
                 andersonFinal >= 0
                   ? "#16a34a"
@@ -325,8 +326,8 @@ function Card({
 
 const box = {
   background: "#fff",
-  padding: "30px",
-  borderRadius: "20px",
+  padding: "20px",
+  borderRadius: "14px",
   border: "1px solid #e5e7eb",
-  boxShadow: "0 8px 25px rgba(0,0,0,0.08)"
+  boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
 }
