@@ -2,152 +2,292 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import Sidebar from "../components/sidebar"
 
-export default function Relatorio(){
+export default function Relatorio() {
 
-const [vendas,setVendas] = useState<any[]>([])
-const [total,setTotal] = useState(0)
-const [lucro,setLucro] = useState(0)
+  const [dados, setDados] = useState<any[]>([])
 
-useEffect(()=>{
-carregarRelatorio()
-},[])
+  useEffect(() => {
+    carregar()
+  }, [])
 
-async function carregarRelatorio(){
+  async function carregar() {
 
-const { data, error } = await supabase
-.from("caixa")
-.select("*")
-.order("id",{ascending:false})
+    const { data } = await supabase
+      .from("financeiro")
+      .select("*")
+      .order("id", { ascending: false })
 
-if(error){
-console.log(error)
+    setDados(data || [])
+
+  }
+
+  const entradas = dados.reduce(
+    (t, i) => t + Number(i.entrada || 0),
+    0
+  )
+
+  const saidas = dados.reduce(
+    (t, i) => t + Number(i.saida || 0),
+    0
+  )
+
+  const lucro = entradas - saidas
+
+  const despesasFixas = dados
+    .filter(i => i.tipo === "DESPESA FIXA")
+    .reduce((t, i) => t + Number(i.saida || 0), 0)
+
+  const dividas = dados
+    .filter(i => i.tipo === "DIVIDA")
+    .reduce((t, i) => t + Number(i.saida || 0), 0)
+
+  const retiradas = dados
+    .filter(i => i.tipo === "RETIRADA")
+    .reduce((t, i) => t + Number(i.saida || 0), 0)
+
+  function moeda(valor: number) {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })
+  }
+
+  return (
+
+    <div
+      style={{
+        display: "flex",
+        background: "#f5f5f5",
+        minHeight: "100vh"
+      }}
+    >
+
+      <Sidebar />
+
+      <div
+        style={{
+          flex: 1,
+          padding: "35px"
+        }}
+      >
+
+        <h1
+          style={{
+            fontSize: "42px",
+            color: "#1e1b4b",
+            marginBottom: "30px"
+          }}
+        >
+          📋 Relatórios Financeiros
+        </h1>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "20px",
+            marginBottom: "25px"
+          }}
+        >
+
+          <Card
+            titulo="💰 Entradas"
+            valor={moeda(entradas)}
+            cor="#16a34a"
+          />
+
+          <Card
+            titulo="💸 Saídas"
+            valor={moeda(saidas)}
+            cor="#dc2626"
+          />
+
+          <Card
+            titulo="📈 Lucro"
+            valor={moeda(lucro)}
+            cor="#111827"
+          />
+
+          <Card
+            titulo="🏦 Retiradas"
+            valor={moeda(retiradas)}
+            cor="#d97706"
+          />
+
+          <Card
+            titulo="🏠 Despesas"
+            valor={moeda(despesasFixas)}
+            cor="#2563eb"
+          />
+
+          <Card
+            titulo="📄 Dívidas"
+            valor={moeda(dividas)}
+            cor="#9333ea"
+          />
+
+        </div>
+
+        <div
+          style={{
+            background: "#fff",
+            padding: "25px",
+            borderRadius: "16px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+          }}
+        >
+
+          <h2
+            style={{
+              marginBottom: "20px",
+              color: "#1e1b4b"
+            }}
+          >
+            Histórico de Movimentações
+          </h2>
+
+          <div
+            style={{
+              overflowX: "auto"
+            }}
+          >
+
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse"
+              }}
+            >
+
+              <thead>
+
+                <tr
+                  style={{
+                    background: "#f3f4f6"
+                  }}
+                >
+
+                  <th style={th}>Data</th>
+                  <th style={th}>Tipo</th>
+                  <th style={th}>Categoria</th>
+                  <th style={th}>Descrição</th>
+                  <th style={th}>Pagamento</th>
+                  <th style={th}>Valor</th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {dados.map((item: any) => (
+
+                  <tr key={item.id}>
+
+                    <td style={td}>
+                      {item.data
+                        ? new Date(item.data).toLocaleDateString("pt-BR")
+                        : "-"
+                      }
+                    </td>
+
+                    <td style={td}>{item.tipo}</td>
+
+                    <td style={td}>{item.categoria}</td>
+
+                    <td style={td}>{item.descricao}</td>
+
+                    <td style={td}>{item.pagamento}</td>
+
+                    <td
+                      style={{
+                        ...td,
+                        color:
+                          Number(item.entrada) > 0
+                            ? "#16a34a"
+                            : "#dc2626",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      {Number(item.entrada) > 0
+                        ? moeda(Number(item.entrada))
+                        : moeda(Number(item.saida))}
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  )
+
 }
 
-if(data){
+function Card({
+  titulo,
+  valor,
+  cor
+}: {
+  titulo: string
+  valor: string
+  cor: string
+}) {
 
-setVendas(data)
+  return (
 
-let totalVenda = 0
-let totalLucro = 0
+    <div
+      style={{
+        background: "#fff",
+        padding: "25px",
+        borderRadius: "16px",
+        boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+      }}
+    >
 
-data.forEach((v:any)=>{
-totalVenda += Number(v.valor || 0)
-totalLucro += Number(v.lucro || 0)
-})
+      <p
+        style={{
+          color: "#6b7280",
+          marginBottom: "12px"
+        }}
+      >
+        {titulo}
+      </p>
 
-setTotal(totalVenda)
-setLucro(totalLucro)
+      <h2
+        style={{
+          color: cor,
+          fontSize: "32px"
+        }}
+      >
+        {valor}
+      </h2>
+
+    </div>
+
+  )
 
 }
 
+const th = {
+  padding: "14px",
+  textAlign: "left" as const,
+  borderBottom: "1px solid #e5e7eb"
 }
 
-return(
-
-<div>
-
-<h1 style={{
-color:"#6B3E2E",
-marginBottom:"20px"
-}}>
-Relatório de vendas
-</h1>
-
-{/* RESUMO */}
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))",
-gap:"20px",
-marginBottom:"30px"
-}}>
-
-<div style={cardStyle}>
-<h3 style={titulo}>Total vendido</h3>
-<p style={valor}>R$ {total.toFixed(2)}</p>
-</div>
-
-<div style={cardStyle}>
-<h3 style={titulo}>Lucro</h3>
-<p style={valor}>R$ {lucro.toFixed(2)}</p>
-</div>
-
-</div>
-
-{/* LISTA */}
-<div style={{
-background:"#fff",
-padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
-}}>
-
-<h2 style={{marginBottom:"15px"}}>Vendas</h2>
-
-<div style={{
-maxHeight:"400px",
-overflowY:"auto"
-}}>
-
-{vendas.map((v:any)=>(
-
-<div key={v.id}
-style={{
-borderBottom:"1px solid #eee",
-padding:"10px 0",
-display:"flex",
-justifyContent:"space-between",
-flexWrap:"wrap"
-}}
->
-
-<div style={{flex:"1"}}>
-
-<p><b>{v.cliente || "Cliente não informado"}</b></p>
-<p>Pagamento: {v.pagamento}</p>
-<p>Data: {v.data || "-"}</p>
-
-</div>
-
-<div style={{textAlign:"right"}}>
-
-<p>Venda: R$ {Number(v.valor).toFixed(2)}</p>
-<p>Custo: R$ {Number(v.custo || 0).toFixed(2)}</p>
-<p style={{color:"green", fontWeight:"bold"}}>
-Lucro: R$ {Number(v.lucro || 0).toFixed(2)}
-</p>
-
-</div>
-
-</div>
-
-))}
-
-</div>
-
-</div>
-
-</div>
-
-)
-}
-
-/* ESTILOS */
-
-const cardStyle = {
-background:"#fff",
-padding:"20px",
-borderRadius:"12px",
-boxShadow:"0 4px 10px rgba(0,0,0,0.05)"
-}
-
-const titulo = {
-color:"#6B3E2E",
-marginBottom:"10px"
-}
-
-const valor = {
-color:"#C9A227",
-fontSize:"22px",
-fontWeight:"bold"
+const td = {
+  padding: "12px",
+  borderTop: "1px solid #e5e7eb"
 }
