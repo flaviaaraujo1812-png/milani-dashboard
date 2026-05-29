@@ -19,7 +19,6 @@ export default function Fechamento() {
       .select("*")
 
     setDados(data || [])
-
   }
 
   function moeda(valor: number) {
@@ -67,16 +66,16 @@ export default function Fechamento() {
   const dividaAnderson = dividas * 0.30
 
   const alexandreFinal =
-    alexandreBruto
-    - despesaAlexandre
-    - dividaAlexandre
-    - retiradaAlexandre
+    alexandreBruto -
+    despesaAlexandre -
+    dividaAlexandre -
+    retiradaAlexandre
 
   const andersonFinal =
-    andersonBruto
-    - despesaAnderson
-    - dividaAnderson
-    - retiradaAnderson
+    andersonBruto -
+    despesaAnderson -
+    dividaAnderson -
+    retiradaAnderson
 
   return (
 
@@ -95,10 +94,19 @@ export default function Fechamento() {
 
         <h1 style={{
           fontSize: "42px",
+          color: "#111827",
           marginBottom: "10px",
-          color: "#111827"
+          display: "flex",
+          alignItems: "center",
+          gap: "12px"
         }}>
-          🤝 Fechamento
+          <span style={{
+            fontSize: "28px"
+          }}>
+            🤝
+          </span>
+
+          Fechamento
         </h1>
 
         <p style={{
@@ -155,7 +163,12 @@ export default function Fechamento() {
           marginBottom: "25px"
         }}>
 
-          <h3>📘 Regras de divisão</h3>
+          <h3 style={{
+            marginBottom: "10px",
+            color: "#1e1b4b"
+          }}>
+            📘 Regras de Divisão
+          </h3>
 
           <p>
             • Despesas Fixas são divididas 50% para cada sócio.
@@ -176,35 +189,30 @@ export default function Fechamento() {
           <div style={box}>
 
             <h2 style={{
-              color: "#16a34a",
-              marginBottom: "20px"
+              color: "#111827",
+              marginBottom: "20px",
+              fontSize: "28px",
+              fontWeight: "bold",
+              borderBottom: "3px solid #16a34a",
+              paddingBottom: "10px"
             }}>
-              Alexandre (70%)
+              Alexandre • 70%
             </h2>
 
             <p>Participação no Lucro: {moeda(alexandreBruto)}</p>
 
-            <p>
-              (-) Despesas Fixas:
-              {" "}
-              {moeda(despesaAlexandre)}
-            </p>
+            <p>Despesas Fixas (50%): {moeda(despesaAlexandre)}</p>
 
-            <p>
-              (-) Dívidas:
-              {" "}
-              {moeda(dividaAlexandre)}
-            </p>
+            <p>Dívidas (70%): {moeda(dividaAlexandre)}</p>
 
-            <p>
-              (-) Retirada Alexandre:
-              {" "}
-              {moeda(retiradaAlexandre)}
-            </p>
+            <p>Retiradas: {moeda(retiradaAlexandre)}</p>
 
-            <hr style={{ margin: "20px 0" }} />
+            <hr style={{
+              margin: "20px 0"
+            }} />
 
             <h1 style={{
+              fontSize: "42px",
               color:
                 alexandreFinal >= 0
                   ? "#16a34a"
@@ -214,13 +222,12 @@ export default function Fechamento() {
             </h1>
 
             <p style={{
-              fontWeight: "bold"
+              fontWeight: "bold",
+              marginTop: "10px"
             }}>
-              Status:
-              {" "}
               {alexandreFinal >= 0
-                ? "Receber"
-                : "Negativo"}
+                ? "✅ Valor a Receber"
+                : "❌ Saldo Negativo"}
             </p>
 
           </div>
@@ -228,35 +235,30 @@ export default function Fechamento() {
           <div style={box}>
 
             <h2 style={{
-              color: "#2563eb",
-              marginBottom: "20px"
+              color: "#111827",
+              marginBottom: "20px",
+              fontSize: "28px",
+              fontWeight: "bold",
+              borderBottom: "3px solid #2563eb",
+              paddingBottom: "10px"
             }}>
-              Anderson (30%)
+              Anderson • 30%
             </h2>
 
             <p>Participação no Lucro: {moeda(andersonBruto)}</p>
 
-            <p>
-              (-) Despesas Fixas:
-              {" "}
-              {moeda(despesaAnderson)}
-            </p>
+            <p>Despesas Fixas (50%): {moeda(despesaAnderson)}</p>
 
-            <p>
-              (-) Dívidas:
-              {" "}
-              {moeda(dividaAnderson)}
-            </p>
+            <p>Dívidas (30%): {moeda(dividaAnderson)}</p>
 
-            <p>
-              (-) Retirada Anderson:
-              {" "}
-              {moeda(retiradaAnderson)}
-            </p>
+            <p>Retiradas: {moeda(retiradaAnderson)}</p>
 
-            <hr style={{ margin: "20px 0" }} />
+            <hr style={{
+              margin: "20px 0"
+            }} />
 
             <h1 style={{
+              fontSize: "42px",
               color:
                 andersonFinal >= 0
                   ? "#16a34a"
@@ -266,13 +268,12 @@ export default function Fechamento() {
             </h1>
 
             <p style={{
-              fontWeight: "bold"
+              fontWeight: "bold",
+              marginTop: "10px"
             }}>
-              Status:
-              {" "}
               {andersonFinal >= 0
-                ? "Receber"
-                : "Negativo"}
+                ? "✅ Valor a Receber"
+                : "❌ Saldo Negativo"}
             </p>
 
           </div>
@@ -282,9 +283,7 @@ export default function Fechamento() {
       </div>
 
     </div>
-
   )
-
 }
 
 function Card({
@@ -321,14 +320,13 @@ function Card({
       </h2>
 
     </div>
-
   )
-
 }
 
 const box = {
   background: "#fff",
-  padding: "25px",
-  borderRadius: "16px",
-  boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+  padding: "30px",
+  borderRadius: "20px",
+  border: "1px solid #e5e7eb",
+  boxShadow: "0 8px 25px rgba(0,0,0,0.08)"
 }
