@@ -50,7 +50,7 @@ export default function Relatorios() {
     .filter(i => i.tipo === "DIVIDA")
     .reduce((t, i) => t + Number(i.saida || 0), 0)
 
-    
+
   return (
 
     <div style={{
@@ -429,8 +429,60 @@ export default function Relatorios() {
             </p>
 
           </div>
+</div>
+
+        {/* RESUMO OPERACIONAL */}
+
+        <div style={{
+          ...box,
+          marginBottom: "20px"
+        }}>
+
+          <h2 style={tituloSecao}>
+            🚗 Resumo Operacional
+          </h2>
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "10px 0",
+            borderBottom: "1px solid #e5e7eb"
+          }}>
+            <span>Veículos Atendidos</span>
+            <strong>0</strong>
+          </div>
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "10px 0",
+            borderBottom: "1px solid #e5e7eb"
+          }}>
+            <span>Carro Mais Atendido</span>
+            <strong>Gol G5</strong>
+          </div>
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "10px 0",
+            borderBottom: "1px solid #e5e7eb"
+          }}>
+            <span>O que Mais Vendeu</span>
+            <strong>Retrovisor</strong>
+          </div>
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "10px 0"
+          }}>
+            <span>Categoria Mais Vendida</span>
+            <strong>Retrovisor</strong>
+          </div>
 
         </div>
+      
 
         {/* BOTOES */}
 
