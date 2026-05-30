@@ -4,9 +4,20 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import Sidebar from "../components/sidebar"
 
+type Lancamento = {
+  id?: number
+  tipo: string
+  categoria: string
+  veiculo: string
+  descricao: string
+  entrada: number
+  saida: number
+  data?: string
+}
+
 export default function Relatorios() {
 
-  const [dados, setDados] = useState<any[]>([])
+  const [dados, setDados] = useState<Lancamento[]>([])
 
   useEffect(() => {
     carregar()
@@ -17,112 +28,213 @@ export default function Relatorios() {
     const { data } = await supabase
       .from("financeiro")
       .select("*")
-
+      .order("id", { ascending: false })
 
     setDados(data || [])
 
   }
 
-  function moeda(valor: number) {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    })
+  const hoje = new Date()
+
+  const mesAtual = hoje.getMonth()
+  const anoAtual = hoje.getFullYear()
+
+  const mesAnterior =
+    mesAtual === 0
+      ? 11
+      : mesAtual - 1
+
+  const anoAnterior =
+    mesAtual === 0
+      ? anoAtual - 1
+      : anoAtual
+
+  const dadosMesAtual = dados.filter(item => {
+
+    if (!item.data) return false
+
+    const data = new Date(item.data)
+
+    return (
+      data.getMonth() === mesAtual &&
+      data.getFullYear() === anoAtual
+    )
+
+  })
+
+  const dadosMesAnterior = dados.filter(item => {
+
+    if (!item.data) return false
+
+    const data = new Date(item.data)
+
+    return (
+      data.getMonth() === mesAnterior &&
+      data.getFullYear() === anoAnterior
+    )
+
+  })
+
+  function totalEntradas(lista: Lancamento[]) {
+
+    return lista.reduce(
+      (t, i) => t + Number(i.entrada || 0),
+      0
+    )
+
   }
 
-  const entradas = dados.reduce(
-    (t, i) => t + Number(i.entrada || 0),
-    0
-  )
+  function totalDespesas(lista: Lancamento[]) {
 
-  const saidas = dados.reduce(
-    (t, i) => t + Number(i.saida || 0),
-    0
-  )
+    return lista
+      .filter(
+        i =>
+          i.tipo === "DESPESA FIXA" ||
+          i.tipo === "SAIDA"
+      )
+      .reduce(
+        (t, i) => t + Number(i.saida || 0),
+        0
+      )
 
-  const lucro = entradas - saidas
+  }
 
-  const despesas = dados
-    .filter(i => i.tipo === "DESPESA FIXA")
-    .reduce((t, i) => t + Number(i.saida || 0), 0)
+  function totalDividas(lista: Lancamento[]) {
 
-  const dividas = dados
-    .filter(i => i.tipo === "DIVIDA")
-    .reduce((t, i) => t + Number(i.saida || 0), 0)
+    return lista
+      .filter(i => i.tipo === "DIVIDA")
+      .reduce(
+        (t, i) => t + Number(i.saida || 0),
+        0
+      )
 
+  }
+
+  function lucro(lista: Lancamento[]) {
+
+    return (
+      totalEntradas(lista)
+      - totalDespesas(lista)
+      - totalDividas(lista)
+    )
+
+  }
+
+  function moeda(valor: number) {
+
+    return valor.toLocaleString(
+      "pt-BR",
+      {
+        style: "currency",
+        currency: "BRL"
+      }
+    )
+
+  }
+
+  const entradasAtual =
+    totalEntradas(dadosMesAtual)
+
+  const despesasAtual =
+    totalDespesas(dadosMesAtual)
+
+  const dividasAtual =
+    totalDividas(dadosMesAtual)
+
+  const lucroAtual =
+    lucro(dadosMesAtual)
+
+  const entradasAnterior =
+    totalEntradas(dadosMesAnterior)
+
+  const despesasAnterior =
+    totalDespesas(dadosMesAnterior)
+
+  const dividasAnterior =
+    totalDividas(dadosMesAnterior)
+
+  const lucroAnterior =
+    lucro(dadosMesAnterior)
 
   return (
 
     <div style={{
       display: "flex",
       minHeight: "100vh",
-      background: "#f5f5f5"
+      background: "#f5f7fb"
     }}>
 
       <Sidebar />
 
       <div style={{
         flex: 1,
-        padding: "25px"
+        padding: "30px"
       }}>
 
         <h1 style={{
-          fontSize: "32px",
-          color: "#111827",
-          marginBottom: "6px"
+          fontSize: "42px",
+          color: "#1e1b4b",
+          marginBottom: "10px"
         }}>
           📊 Relatórios Financeiros
         </h1>
 
         <p style={{
           color: "#6b7280",
-          marginBottom: "25px"
+          marginBottom: "30px"
         }}>
-          Comparativo completo entre os últimos meses
+          Comparativo dos últimos meses
         </p>
+
         <div style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: "16px",
-          marginBottom: "20px"
+          gridTemplateColumns: "1fr 1fr",
+          gap: "20px",
+          marginBottom: "25px"
         }}>
 
-          {/* MÊS ATUAL */}
+        </div>
+        {/* MÊS ATUAL */}
 
           <div style={box}>
 
-            <h2 style={{
-              color: "#16a34a",
-              marginBottom: "10px",
-              fontSize: "22px"
-            }}>
+            <h2 style={tituloSecao}>
               📅 Mês Atual
             </h2>
 
             <p style={{
               color: "#6b7280",
-              marginBottom: "15px"
+              marginBottom: "20px"
             }}>
-              Maio / 2026
+              {hoje.toLocaleString("pt-BR", {
+                month: "long",
+                year: "numeric"
+              })}
             </p>
 
             <div style={resumoGrid}>
 
               <MiniCard
                 titulo="Entradas"
-                valor={moeda(entradas)}
+                valor={moeda(entradasAtual)}
                 cor="#16a34a"
               />
 
               <MiniCard
-                titulo="Saídas"
-                valor={moeda(saidas)}
+                titulo="Despesas"
+                valor={moeda(despesasAtual)}
                 cor="#dc2626"
               />
 
               <MiniCard
+                titulo="Dívidas"
+                valor={moeda(dividasAtual)}
+                cor="#7c3aed"
+              />
+
+              <MiniCard
                 titulo="Lucro"
-                valor={moeda(lucro)}
+                valor={moeda(lucroAtual)}
                 cor="#2563eb"
               />
 
@@ -134,38 +246,46 @@ export default function Relatorios() {
 
           <div style={box}>
 
-            <h2 style={{
-              color: "#2563eb",
-              marginBottom: "10px",
-              fontSize: "22px"
-            }}>
+            <h2 style={tituloSecao}>
               📅 Mês Anterior
             </h2>
 
             <p style={{
               color: "#6b7280",
-              marginBottom: "15px"
+              marginBottom: "20px"
             }}>
-              Abril / 2026
+              {new Date(
+                anoAnterior,
+                mesAnterior
+              ).toLocaleString("pt-BR", {
+                month: "long",
+                year: "numeric"
+              })}
             </p>
 
             <div style={resumoGrid}>
 
               <MiniCard
                 titulo="Entradas"
-                valor="R$ 0,00"
+                valor={moeda(entradasAnterior)}
                 cor="#16a34a"
               />
 
               <MiniCard
-                titulo="Saídas"
-                valor="R$ 0,00"
+                titulo="Despesas"
+                valor={moeda(despesasAnterior)}
                 cor="#dc2626"
               />
 
               <MiniCard
+                titulo="Dívidas"
+                valor={moeda(dividasAnterior)}
+                cor="#7c3aed"
+              />
+
+              <MiniCard
                 titulo="Lucro"
-                valor="R$ 0,00"
+                valor={moeda(lucroAnterior)}
                 cor="#2563eb"
               />
 
@@ -173,93 +293,15 @@ export default function Relatorios() {
 
           </div>
 
-          {/* COMPARATIVO */}
-
-          <div style={box}>
-
-            <h2 style={{
-              color: "#9333ea",
-              marginBottom: "15px",
-              fontSize: "22px"
-            }}>
-              ⚖️ Comparativo
-            </h2>
-
-            <table style={{
-              width: "100%"
-            }}>
-
-              <tbody>
-
-                <tr>
-                  <td style={tdComp}>Entradas</td>
-                  <td style={{
-                    ...tdComp,
-                    color: "#16a34a",
-                    fontWeight: "bold"
-                  }}>
-                    {moeda(entradas)}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style={tdComp}>Saídas</td>
-                  <td style={{
-                    ...tdComp,
-                    color: "#dc2626",
-                    fontWeight: "bold"
-                  }}>
-                    {moeda(saidas)}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style={tdComp}>Lucro</td>
-                  <td style={{
-                    ...tdComp,
-                    color: "#2563eb",
-                    fontWeight: "bold"
-                  }}>
-                    {moeda(lucro)}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style={tdComp}>Despesas</td>
-                  <td style={{
-                    ...tdComp,
-                    color: "#f97316",
-                    fontWeight: "bold"
-                  }}>
-                    {moeda(despesas)}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style={tdComp}>Dívidas</td>
-                  <td style={{
-                    ...tdComp,
-                    color: "#9333ea",
-                    fontWeight: "bold"
-                  }}>
-                    {moeda(dividas)}
-                  </td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
         </div>
+
         {/* MELHORES E PIORES DIAS */}
 
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-          marginBottom: "20px"
+          gap: "20px",
+          marginBottom: "25px"
         }}>
 
           <div style={box}>
@@ -268,28 +310,30 @@ export default function Relatorios() {
               🏆 Melhores Dias
             </h2>
 
-            <table style={{ width: "100%" }}>
+            <div style={linhaResumo}>
+              <span>1º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-              <tbody>
+            <div style={linhaResumo}>
+              <span>2º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>1º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
+            <div style={linhaResumo}>
+              <span>3º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>2º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
+            <div style={linhaResumo}>
+              <span>4º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>3º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
-
-              </tbody>
-
-            </table>
+            <div style={linhaResumo}>
+              <span>5º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
           </div>
 
@@ -299,216 +343,82 @@ export default function Relatorios() {
               📉 Piores Dias
             </h2>
 
-            <table style={{ width: "100%" }}>
+            <div style={linhaResumo}>
+              <span>1º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-              <tbody>
+            <div style={linhaResumo}>
+              <span>2º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>1º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
+            <div style={linhaResumo}>
+              <span>3º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>2º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
+            <div style={linhaResumo}>
+              <span>4º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
-                <tr>
-                  <td style={tdComp}>3º Lugar</td>
-                  <td style={tdComp}>R$ 0,00</td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
-        {/* DESPESAS E DIVIDAS */}
-
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-          marginBottom: "20px"
-        }}>
-
-          <div style={box}>
-
-            <h2 style={tituloSecao}>
-              💸 Total de Despesas
-            </h2>
-
-            <h1 style={{
-              color: "#f97316",
-              fontSize: "28px"
-            }}>
-              {moeda(despesas)}
-            </h1>
-
-          </div>
-
-          <div style={box}>
-
-            <h2 style={tituloSecao}>
-              📄 Total de Dívidas
-            </h2>
-
-            <h1 style={{
-              color: "#9333ea",
-              fontSize: "28px"
-            }}>
-              {moeda(dividas)}
-            </h1>
+            <div style={linhaResumo}>
+              <span>5º Lugar</span>
+              <span>R$ 0,00</span>
+            </div>
 
           </div>
 
         </div>
-
-        {/* RESULTADO DOS SOCIOS */}
-
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-          marginBottom: "20px"
-        }}>
-
-          <div style={box}>
-
-            <h2 style={{
-              fontSize: "18px",
-              fontWeight: "bold",
-              borderBottom: "2px solid #16a34a",
-              paddingBottom: "8px",
-              marginBottom: "15px"
-            }}>
-              Alexandre • 70%
-            </h2>
-
-            <h1 style={{
-              fontSize: "24px",
-              color: "#16a34a"
-            }}>
-              Positivo
-            </h1>
-
-            <p style={{
-              color: "#6b7280"
-            }}>
-              Resultado do fechamento
-            </p>
-
-          </div>
-
-          <div style={box}>
-
-            <h2 style={{
-              fontSize: "18px",
-              fontWeight: "bold",
-              borderBottom: "2px solid #2563eb",
-              paddingBottom: "8px",
-              marginBottom: "15px"
-            }}>
-              Anderson • 30%
-            </h2>
-
-            <h1 style={{
-              fontSize: "24px",
-              color: "#16a34a"
-            }}>
-              Positivo
-            </h1>
-
-            <p style={{
-              color: "#6b7280"
-            }}>
-              Resultado do fechamento
-            </p>
-
-          </div>
-</div>
-
         {/* RESUMO OPERACIONAL */}
 
-<div style={{
-  ...box,
-  marginBottom: "20px"
-}}>
+        <div style={box}>
 
-  <h2 style={tituloSecao}>
-    🚗 Resumo Operacional
-  </h2>
+          <h2 style={tituloSecao}>
+            🚗 Resumo Operacional
+          </h2>
 
-  <div style={{
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px"
-  }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "30px"
+          }}>
 
-    {/* TOP 5 CARROS */}
+            <div>
 
-    <div>
+              <h3 style={{
+                color: "#2563eb",
+                marginBottom: "15px"
+              }}>
+                Top 5 Carros Mais Atendidos
+              </h3>
 
-      <h3 style={{
-        marginBottom: "15px",
-        color: "#2563eb"
-      }}>
-        Top 5 Carros Mais Atendidos
-      </h3>
+              <p>1º - -</p>
+              <p>2º - -</p>
+              <p>3º - -</p>
+              <p>4º - -</p>
+              <p>5º - -</p>
 
-      <p>1º - -</p>
-      <p>2º - -</p>
-      <p>3º - -</p>
-      <p>4º - -</p>
-      <p>5º - -</p>
+            </div>
 
-    </div>
+            <div>
 
-    {/* TOP 3 SERVIÇOS */}
+              <h3 style={{
+                color: "#7c3aed",
+                marginBottom: "15px"
+              }}>
+                Top 3 Categorias de Serviços/Peças
+              </h3>
 
-    <div>
+              <p>1º - -</p>
+              <p>2º - -</p>
+              <p>3º - -</p>
 
-      <h3 style={{
-        marginBottom: "15px",
-        color: "#9333ea"
-      }}>
-        Top 3 Categorias de Serviços/Peças
-      </h3>
+            </div>
 
-      <p>1º - -</p>
-      <p>2º - -</p>
-      <p>3º - -</p>
-
-    </div>
-
-  </div>
-
-</div>
-
-        {/* BOTOES */}
-
-        <div style={{
-          display: "flex",
-          gap: "12px",
-          marginBottom: "30px"
-        }}>
-
-          <button style={botao}>
-            📄 Exportar PDF
-          </button>
-
-          <button style={botao}>
-            📊 Exportar Excel
-          </button>
-
-          <button style={botao}>
-            🖨 Imprimir
-          </button>
-
-        </div>
+          </div>
+          
 
       </div>
 
@@ -518,30 +428,38 @@ export default function Relatorios() {
 
 }
 
+/* COMPONENTE CARD */
+
 function MiniCard({
   titulo,
   valor,
   cor
-}: any) {
+}: {
+  titulo: string
+  valor: string
+  cor: string
+}) {
 
   return (
 
     <div style={{
-      background: "#f9fafb",
-      padding: "12px",
-      borderRadius: "12px"
+      background: "#f8fafc",
+      borderRadius: "12px",
+      padding: "15px",
+      textAlign: "center"
     }}>
 
       <p style={{
+        fontSize: "13px",
         color: "#6b7280",
-        fontSize: "12px"
+        marginBottom: "8px"
       }}>
         {titulo}
       </p>
 
       <h3 style={{
         color: cor,
-        fontSize: "16px"
+        fontSize: "20px"
       }}>
         {valor}
       </h3>
@@ -552,6 +470,8 @@ function MiniCard({
 
 }
 
+/* ESTILOS */
+
 const box = {
   background: "#fff",
   padding: "20px",
@@ -561,26 +481,19 @@ const box = {
 
 const resumoGrid = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
+  gridTemplateColumns: "1fr 1fr",
   gap: "10px"
 }
 
 const tituloSecao = {
   marginBottom: "15px",
-  fontSize: "18px",
+  fontSize: "22px",
   fontWeight: "bold"
 }
 
-const tdComp = {
-  padding: "10px 0",
+const linhaResumo = {
+  display: "flex",
+  justifyContent: "space-between",
+  padding: "12px 0",
   borderBottom: "1px solid #e5e7eb"
-}
-
-const botao = {
-  background: "#111827",
-  color: "#fff",
-  border: "none",
-  padding: "12px 18px",
-  borderRadius: "10px",
-  cursor: "pointer"
 }
