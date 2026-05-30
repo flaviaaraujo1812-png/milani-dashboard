@@ -1,4 +1,10 @@
+"use client"
+
+import { usePathname } from "next/navigation"
+
 export default function Sidebar() {
+
+  const pathname = usePathname()
 
   return (
 
@@ -16,26 +22,79 @@ export default function Sidebar() {
         marginBottom: "40px",
         fontSize: "24px",
         lineHeight: "32px",
-        fontWeight: "bold"
+        fontWeight: "700",
+        letterSpacing: "0.5px"
       }}>
         🚘 PLANETA DOS
         <br />
         RETROVISORES
       </h2>
 
-      <a href="/dashboard" style={menu}>
+      <a
+        href="/dashboard"
+        style={{
+          ...menu,
+          background:
+            pathname === "/dashboard"
+              ? "#fbbf24"
+              : "#1e293b",
+          color:
+            pathname === "/dashboard"
+              ? "#111827"
+              : "#fff"
+        }}
+      >
         📊 Dashboard
       </a>
 
-      <a href="/caixa" style={menu}>
+      <a
+        href="/caixa"
+        style={{
+          ...menu,
+          background:
+            pathname === "/caixa"
+              ? "#fbbf24"
+              : "#1e293b",
+          color:
+            pathname === "/caixa"
+              ? "#111827"
+              : "#fff"
+        }}
+      >
         💰 Caixa Diário
       </a>
 
-      <a href="/relatorio" style={menu}>
+      <a
+        href="/relatorio"
+        style={{
+          ...menu,
+          background:
+            pathname === "/relatorio"
+              ? "#fbbf24"
+              : "#1e293b",
+          color:
+            pathname === "/relatorio"
+              ? "#111827"
+              : "#fff"
+        }}
+      >
         📋 Relatórios
       </a>
 
-      <a href="/fechamento" style={menu}>
+      <a
+        href="/fechamento"
+        style={{
+          ...menu,
+          background:
+            pathname === "/fechamento"
+              ? "#fbbf24"
+              : "#1e293b",
+          color:
+            pathname === "/fechamento"
+              ? "#111827"
+              : "#fff"
+        }}
+      >
         🤝 Fechamento
       </a>
 
@@ -47,13 +106,13 @@ export default function Sidebar() {
 
 const menu = {
   display: "block",
-  background: "#1e293b",
-  color: "#fff",
+  
   textDecoration: "none",
   marginBottom: "12px",
-  padding: "14px",
+  padding: "14px 16px",
   borderRadius: "12px",
-  fontSize: "18px",
-  fontWeight: "bold",
-  transition: "0.2s"
+  fontSize: "16px",
+  fontWeight: "600",
+  fontFamily: "Arial, sans-serif",
+  transition: "all 0.2s ease"
 }
