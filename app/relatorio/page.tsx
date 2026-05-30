@@ -193,7 +193,7 @@ export default function Relatorios() {
           marginBottom: "25px"
         }}>
 
-        </div>
+
         {/* MÊS ATUAL */}
 
           <div style={box}>
@@ -211,6 +211,8 @@ export default function Relatorios() {
                 year: "numeric"
               })}
             </p>
+
+            </div>
 
             <div style={resumoGrid}>
 
@@ -418,7 +420,7 @@ export default function Relatorios() {
             </div>
 
           </div>
-          
+
 
       </div>
 
