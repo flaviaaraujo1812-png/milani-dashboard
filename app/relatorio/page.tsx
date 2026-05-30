@@ -433,56 +433,60 @@ export default function Relatorios() {
 
         {/* RESUMO OPERACIONAL */}
 
-        <div style={{
-          ...box,
-          marginBottom: "20px"
-        }}>
+<div style={{
+  ...box,
+  marginBottom: "20px"
+}}>
 
-          <h2 style={tituloSecao}>
-            🚗 Resumo Operacional
-          </h2>
+  <h2 style={tituloSecao}>
+    🚗 Resumo Operacional
+  </h2>
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "10px 0",
-            borderBottom: "1px solid #e5e7eb"
-          }}>
-            <span>Veículos Atendidos</span>
-            <strong>0</strong>
-          </div>
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px"
+  }}>
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "10px 0",
-            borderBottom: "1px solid #e5e7eb"
-          }}>
-            <span>Carro Mais Atendido</span>
-            <strong>Gol G5</strong>
-          </div>
+    {/* TOP 5 CARROS */}
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "10px 0",
-            borderBottom: "1px solid #e5e7eb"
-          }}>
-            <span>O que Mais Vendeu</span>
-            <strong>Retrovisor</strong>
-          </div>
+    <div>
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "10px 0"
-          }}>
-            <span>Categoria Mais Vendida</span>
-            <strong>Retrovisor</strong>
-          </div>
+      <h3 style={{
+        marginBottom: "15px",
+        color: "#2563eb"
+      }}>
+        Top 5 Carros Mais Atendidos
+      </h3>
 
-        </div>
-      
+      <p>1º - -</p>
+      <p>2º - -</p>
+      <p>3º - -</p>
+      <p>4º - -</p>
+      <p>5º - -</p>
+
+    </div>
+
+    {/* TOP 3 SERVIÇOS */}
+
+    <div>
+
+      <h3 style={{
+        marginBottom: "15px",
+        color: "#9333ea"
+      }}>
+        Top 3 Categorias de Serviços/Peças
+      </h3>
+
+      <p>1º - -</p>
+      <p>2º - -</p>
+      <p>3º - -</p>
+
+    </div>
+
+  </div>
+
+</div>
 
         {/* BOTOES */}
 
