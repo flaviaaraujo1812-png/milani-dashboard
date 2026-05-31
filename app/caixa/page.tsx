@@ -59,7 +59,7 @@ if (!categoria) {
   return
 }
 
-await supabase
+const { data, error } = await supabase
   .from("financeiro")
   .insert({
 
@@ -87,6 +87,13 @@ await supabase
     data: new Date().toISOString()
 
   })
+
+  console.log("DATA:", data)
+console.log("ERROR:", error)
+
+if (error) {
+  alert(JSON.stringify(error))
+}
 
 setCategoria("")
 setVeiculo("")
