@@ -75,16 +75,19 @@ const { data, error } = await supabase
     pagamento,
 
     entrada:
-      tipo === "ENTRADA"
-        ? Number(valor || 0)
-        : 0,
+  tipo === "ENTRADA"
+    ? Number(String(valor).replace(".", "").replace(",", ".") || 0)
+    : 0,
 
-    saida:
-      tipo !== "ENTRADA"
-        ? Number(valor || 0)
-        : 0,
-
-    data: new Date().toISOString()
+saida:
+  tipo === "SAIDA" ||
+  tipo === "DESPESA FIXA" ||
+  tipo === "DIVIDA" ||
+  tipo === "RETIRADA"
+    ? Number(String(valor).replace(".", "").replace(",", ".") || 0)
+    : 0,
+    
+   data: new Date().toISOString().split("T")[0]
 
   })
 
